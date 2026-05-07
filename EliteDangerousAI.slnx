@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="EDAI.Core/EDAI.Core.csproj" />
+  <Project Path="EDAI.Data/EDAI.Data.csproj" />
+  <Project Path="EDAI.UI/EDAI.UI.csproj" />
+</Solution>
