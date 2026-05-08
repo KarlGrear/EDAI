@@ -1,0 +1,143 @@
+using System.Collections.ObjectModel;
+using System.Windows;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using EDAI.Core.Interfaces;
+using EDAI.Core.Models;
+using EDAI.UI.Services;
+
+namespace EDAI.UI.ViewModels;
+
+public sealed partial class MainWindowViewModel : ObservableObject
+{
+    private readonly IOutputDispatcher _dispatcher;
+    private readonly ITtsService _tts;
+    private readonly ISettingsRepository _settingsRepo;
+    private readonly INavigationService _navigation;
+    private readonly IErrorService _errorService;
+
+    public ObservableCollection<ResponseDisplayItem> Responses { get; } = [];
+    public ObservableCollection<EventLogItem> EventLog { get; } = [];
+
+    [ObservableProperty] private string _statusMessage = "Ready";
+    [ObservableProperty] private string? _errorMessage;
+    [ObservableProperty] private bool _isTtsEnabled = true;
+    [ObservableProperty] private bool _isAlwaysOnTop;
+    [ObservableProperty] private string _currentTheme = "Dark";
+
+    private const int MaxResponses = 200;
+    private const int MaxEventLogItems = 500;
+
+    public MainWindowViewModel(
+        IOutputDispatcher dispatcher,
+        ITtsService tts,
+        ISettingsRepository settingsRepo,
+        INavigationService navigation,
+        IErrorService errorService)
+    {
+        _dispatcher = dispatcher;
+        _tts = tts;
+        _settingsRepo = settingsRepo;
+        _navigation = navigation;
+        _errorService = errorService;
+
+        _dispatcher.ResponseReceived += OnResponseReceived;
+        _errorService.MinorErrorOccurred += OnMinorError;
+        _errorService.CriticalErrorOccurred += OnCriticalError;
+    }
+
+    public async Task LoadSettingsAsync()
+    {
+        var settings = await _settingsRepo.GetAsync();
+        IsTtsEnabled = settings.TtsEnabled;
+        IsAlwaysOnTop = settings.AlwaysOnTop;
+        CurrentTheme = settings.Theme;
+    }
+
+    public void NotifyJournalEvent(string eventType)
+    {
+        var item = new EventLogItem { EventType = eventType, Timestamp = DateTime.UtcNow };
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            EventLog.Insert(0, item);
+            if (EventLog.Count > MaxEventLogItems)
+                EventLog.RemoveAt(EventLog.Count - 1);
+            StatusMessage = $"Last event: {eventType} at {item.TimestampDisplay}";
+        });
+    }
+
+    [RelayCommand]
+    private async Task ToggleTheme()
+    {
+        CurrentTheme = CurrentTheme == "Dark" ? "Light" : "Dark";
+        App.ApplyTheme(CurrentTheme);
+        var settings = await _settingsRepo.GetAsync();
+        settings.Theme = CurrentTheme;
+        await _settingsRepo.SaveAsync(settings);
+    }
+
+    [RelayCommand]
+    private async Task ToggleAlwaysOnTop()
+    {
+        IsAlwaysOnTop = !IsAlwaysOnTop;
+        Application.Current.MainWindow.Topmost = IsAlwaysOnTop;
+        var settings = await _settingsRepo.GetAsync();
+        settings.AlwaysOnTop = IsAlwaysOnTop;
+        await _settingsRepo.SaveAsync(settings);
+    }
+
+    [RelayCommand]
+    private async Task ToggleTts()
+    {
+        IsTtsEnabled = !IsTtsEnabled;
+        _tts.IsEnabled = IsTtsEnabled;
+        var settings = await _settingsRepo.GetAsync();
+        settings.TtsEnabled = IsTtsEnabled;
+        await _settingsRepo.SaveAsync(settings);
+    }
+
+    [RelayCommand]
+    private void NavigateToSettings() => _navigation.ShowSettings();
+
+    [RelayCommand]
+    private void NavigateToEventConfigurations() => _navigation.ShowEventConfigurations();
+
+    [RelayCommand]
+    private void NavigateToTest() => _navigation.ShowTest();
+
+    [RelayCommand]
+    private void ClearResponses() => Responses.Clear();
+
+    private void OnResponseReceived(object? sender, AiResponseReceivedEventArgs e)
+    {
+        var item = new ResponseDisplayItem
+        {
+            ConfigTitle = e.ConfigTitle,
+            TitleDisplayMode = e.TitleDisplayMode,
+            Text = e.DisplayedOutput,
+            Timestamp = e.Timestamp,
+        };
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            Responses.Insert(0, item);
+            if (Responses.Count > MaxResponses)
+                Responses.RemoveAt(Responses.Count - 1);
+        });
+    }
+
+    private void OnMinorError(object? sender, EdaiErrorEventArgs e)
+    {
+        Application.Current.Dispatcher.InvokeAsync(() =>
+            ErrorMessage = $"{e.Source}: {e.Message}");
+    }
+
+    private void OnCriticalError(object? sender, EdaiErrorEventArgs e)
+    {
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            ErrorMessage = $"CRITICAL — {e.Source}: {e.Message}";
+            MessageBox.Show($"{e.Message}", "Elite Dangerous AI — Critical Error",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        });
+    }
+}

@@ -1,0 +1,149 @@
+<Window x:Class="EDAI.UI.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+        xmlns:controls="clr-namespace:EDAI.UI.Controls"
+        Title="Settings — Elite Dangerous AI"
+        Width="540" Height="600"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        TextElement.Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"
+        Background="{DynamicResource MaterialDesign.Brush.Background}"
+        FontFamily="{materialDesign:MaterialDesignFont}">
+
+    <DockPanel Margin="16">
+
+        <!-- Save / Cancel -->
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Save"
+                    Command="{Binding SaveCommand}"
+                    Style="{StaticResource MaterialDesignRaisedButton}"
+                    IsDefault="True" Margin="0,0,8,0" />
+            <Button Content="Cancel"
+                    Command="{Binding CancelCommand}"
+                    Style="{StaticResource MaterialDesignOutlinedButton}" />
+        </StackPanel>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <!-- ── OpenAI ─────────────────────────────────────────── -->
+                <DockPanel Margin="0,0,0,8">
+                    <controls:HelpIcon DockPanel.Dock="Right"
+                                       HelpText="Configure your OpenAI connection. An API key is required for EDAI to make AI calls. Calls are only made for events you explicitly configure — no background polling occurs." />
+                    <TextBlock Text="OpenAI"
+                               Style="{StaticResource MaterialDesignSubtitle1TextBlock}" />
+                </DockPanel>
+
+                <!-- API Key -->
+                <DockPanel Margin="0,0,0,4">
+                    <controls:HelpIcon DockPanel.Dock="Right"
+                                       HelpText="Your secret OpenAI API key from platform.openai.com. Stored encrypted on this PC using Windows DPAPI — never written in plain text. Never shared or transmitted except in direct API calls to OpenAI." />
+                    <TextBlock Text="API Key" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
+                </DockPanel>
+                <TextBox materialDesign:HintAssist.Hint="Paste your OpenAI API key here"
+                         Text="{Binding OpenAiApiKey, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Margin="0,0,0,12" />
+
+                <!-- Model -->
+                <DockPanel Margin="0,0,0,4">
+                    <controls:HelpIcon DockPanel.Dock="Right"
+                                       HelpText="The OpenAI model used to process your events. GPT-4o gives the richest, most accurate responses. GPT-4o-mini is faster and cheaper. Type any valid model ID to use an unlisted model." />
+                    <TextBlock Text="Model" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
+                </DockPanel>
+                <ComboBox materialDesign:HintAssist.Hint="Model"
+                          ItemsSource="{Binding OpenAiModels}"
+                          SelectedItem="{Binding OpenAiModel}"
+                          IsEditable="True"
+                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                          Margin="0,0,0,24" />
+
+                <!-- ── Text-to-Speech ─────────────────────────────────── -->
+                <DockPanel Margin="0,0,0,8">
+                    <controls:HelpIcon DockPanel.Dock="Right"
+                                       HelpText="EDAI uses Windows built-in SAPI voices for speech — no internet connection or third-party software required. TTS runs on a background thread and never blocks the UI." />
+                    <TextBlock Text="Text-to-Speech"
+                               Style="{StaticResource MaterialDesignSubtitle1TextBlock}" />
+                </DockPanel>
+
+                <!-- TTS Enabled -->
+                <DockPanel Margin="0,0,0,12">
+                    <controls:HelpIcon DockPanel.Dock="Right"
+                                       HelpText="Master on/off switch for all speech announcements. You can also toggle TTS from the main window toolbar (the speaker icon) without changing this setting." />
+                    <CheckBox Content="TTS Enabled"
+                              IsChecked="{Binding TtsEnabled}"
+                              Style="{StaticResource MaterialDesignCheckBox}" />
+                </DockPanel>
+
+                <!-- TTS Voice -->
+                <DockPanel Margin="0,0,0,4">
+                    <controls:HelpIcon DockPanel.Dock="Right"
+                                       HelpText="The Windows SAPI voice used for speech. Only voices installed on your system appear here. Additional voices can be installed via Windows Settings → Time &amp; Language → Speech. Click 'Test Voice' to hear a sample before saving." />
+                    <TextBlock Text="Voice" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
+                </DockPanel>
+                <DockPanel Margin="0,0,0,24">
+                    <Button DockPanel.Dock="Right"
+                            Content="Test Voice"
+                            Command="{Binding TestVoiceCommand}"
+                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                            Margin="8,0,0,0" />
+                    <ComboBox materialDesign:HintAssist.Hint="TTS Voice"
+                              ItemsSource="{Binding TtsVoices}"
+                              SelectedItem="{Binding SelectedTtsVoice}"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}" />
+                </DockPanel>
+
+                <!-- ── Notifications ─────────────────────────────────── -->
+                <DockPanel Margin="0,0,0,8">
+                    <controls:HelpIcon DockPanel.Dock="Right"
+                                       HelpText="Controls Windows tray balloon notifications. Notifications only appear when EDAI is minimised to the system tray. Each event configuration also has its own per-config notification toggle." />
+                    <TextBlock Text="Notifications"
+                               Style="{StaticResource MaterialDesignSubtitle1TextBlock}" />
+                </DockPanel>
+
+                <!-- Tray notifications -->
+                <DockPanel Margin="0,0,0,24">
+                    <controls:HelpIcon DockPanel.Dock="Right"
+                                       HelpText="Global override for tray notifications. When disabled, no balloon notifications are shown regardless of per-configuration settings. When enabled, each configuration's own 'Show Tray Notification' checkbox controls whether it notifies." />
+                    <CheckBox Content="Tray Notifications Enabled"
+                              IsChecked="{Binding TrayNotificationsEnabled}"
+                              Style="{StaticResource MaterialDesignCheckBox}" />
+                </DockPanel>
+
+                <!-- ── Interface ─────────────────────────────────────── -->
+                <DockPanel Margin="0,0,0,8">
+                    <controls:HelpIcon DockPanel.Dock="Right"
+                                       HelpText="Visual preferences for the EDAI window. Settings take effect immediately and are saved when you click Save." />
+                    <TextBlock Text="Interface"
+                               Style="{StaticResource MaterialDesignSubtitle1TextBlock}" />
+                </DockPanel>
+
+                <!-- Always on top -->
+                <DockPanel Margin="0,0,0,12">
+                    <controls:HelpIcon DockPanel.Dock="Right"
+                                       HelpText="When enabled, the EDAI window floats in front of all other applications — useful while playing Elite Dangerous full-screen (windowed mode). Can also be toggled from the main window toolbar." />
+                    <CheckBox Content="Always on Top"
+                              IsChecked="{Binding AlwaysOnTop}"
+                              Style="{StaticResource MaterialDesignCheckBox}" />
+                </DockPanel>
+
+                <!-- Theme -->
+                <DockPanel Margin="0,0,0,4">
+                    <controls:HelpIcon DockPanel.Dock="Right"
+                                       HelpText="Switch between Dark and Light interface themes. The change applies immediately so you can preview before saving. Dark is recommended when playing with a darkened room." />
+                    <TextBlock Text="Theme" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
+                </DockPanel>
+                <ComboBox materialDesign:HintAssist.Hint="Theme"
+                          SelectedValue="{Binding Theme}"
+                          SelectedValuePath="Content"
+                          Style="{StaticResource MaterialDesignOutlinedComboBox}">
+                    <ComboBoxItem Content="Dark" />
+                    <ComboBoxItem Content="Light" />
+                </ComboBox>
+
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

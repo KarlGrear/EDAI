@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet add *)",
+      "Bash(Remove-Item \"c:\\\\Users\\\\mobil\\\\source\\\\repos\\\\EliteDangerousAI\\\\EDAI.Core\\\\Class1.cs\")",
+      "Bash(Remove-Item \"c:\\\\Users\\\\mobil\\\\source\\\\repos\\\\EliteDangerousAI\\\\EDAI.Data\\\\Class1.cs\")",
+      "Bash(dotnet build *)",
+      "Bash(dotnet tool *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\mobil\\\\source\\\\repos\\\\EliteDangerousAI\\\\EDAI.UI\\\\Controls\\\\\" -ErrorAction SilentlyContinue | Select-Object Name)",
+      "Bash(powershell -Command \"Add-Type -Path 'EDAI.UI\\\\bin\\\\Debug\\\\net10.0-windows\\\\MaterialDesignThemes.Wpf.dll'; [System.Reflection.Assembly]::LoadFrom\\(\\(Resolve-Path 'EDAI.UI\\\\bin\\\\Debug\\\\net10.0-windows\\\\MaterialDesignThemes.Wpf.dll'\\)\\) | Out-Null\")",
+      "Bash(find /c/Users/mobil/.nuget/packages/materialdesignthemes -name \"*.xaml\" 2>/dev/null | head -20)",
+      "Read(//c/Users/mobil/.nuget/packages/materialdesignthemes/**)"
+    ]
+  }
+}
