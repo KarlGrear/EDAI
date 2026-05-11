@@ -3,15 +3,15 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
         xmlns:controls="clr-namespace:EDAI.UI.Controls"
-        Title="Settings — Elite Dangerous AI"
-        Width="540" Height="600"
+        Title="Application Settings — Elite Dangerous AI"
+        Width="560" Height="560"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         TextElement.Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"
         Background="{DynamicResource MaterialDesign.Brush.Background}"
         FontFamily="{materialDesign:MaterialDesignFont}">
 
-    <DockPanel Margin="16">
+    <DockPanel Margin="24">
 
         <!-- Save / Cancel -->
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
@@ -129,19 +129,42 @@
                               Style="{StaticResource MaterialDesignCheckBox}" />
                 </DockPanel>
 
-                <!-- Theme -->
+                <!-- Show splash screen -->
+                <DockPanel Margin="0,0,0,12">
+                    <controls:HelpIcon DockPanel.Dock="Right"
+                                       HelpText="When enabled, the EDAI splash screen is shown for 5 seconds each time the application starts." />
+                    <CheckBox Content="Show Splash Screen on Launch"
+                              IsChecked="{Binding ShowSplashScreen}"
+                              Style="{StaticResource MaterialDesignCheckBox}" />
+                </DockPanel>
+
+                <!-- Font Family -->
                 <DockPanel Margin="0,0,0,4">
                     <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Switch between Dark and Light interface themes. The change applies immediately so you can preview before saving. Dark is recommended when playing with a darkened room." />
-                    <TextBlock Text="Theme" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
+                                       HelpText="The font used throughout the interface. Leave blank for the default Material Design font." />
+                    <TextBlock Text="Font Family" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
                 </DockPanel>
-                <ComboBox materialDesign:HintAssist.Hint="Theme"
-                          SelectedValue="{Binding Theme}"
-                          SelectedValuePath="Content"
-                          Style="{StaticResource MaterialDesignOutlinedComboBox}">
-                    <ComboBoxItem Content="Dark" />
-                    <ComboBoxItem Content="Light" />
-                </ComboBox>
+                <ComboBox materialDesign:HintAssist.Hint="Font (blank = default)"
+                          ItemsSource="{Binding FontFamilies}"
+                          SelectedItem="{Binding SelectedFontFamily}"
+                          IsEditable="True"
+                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                          Margin="0,0,0,12" />
+
+                <!-- Font Size -->
+                <DockPanel Margin="0,0,0,4">
+                    <controls:HelpIcon DockPanel.Dock="Right"
+                                       HelpText="Base font size in points. Default is 14. Scales all text in the interface." />
+                    <TextBlock Text="Font Size" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
+                </DockPanel>
+                <DockPanel Margin="0,0,0,24">
+                    <TextBlock DockPanel.Dock="Right" Width="40" TextAlignment="Right"
+                               Text="{Binding FontSize, StringFormat={}{0:F0} pt}"
+                               VerticalAlignment="Center" Margin="8,0,0,0" />
+                    <Slider Value="{Binding FontSize}"
+                            Minimum="8" Maximum="32"
+                            TickFrequency="1" IsSnapToTickEnabled="True" />
+                </DockPanel>
 
             </StackPanel>
         </ScrollViewer>

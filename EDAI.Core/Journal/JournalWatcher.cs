@@ -37,6 +37,11 @@ public sealed class JournalWatcher : IJournalWatcher
     private string? _currentFilePath;
     private long _filePosition;
 
+    public string? CurrentJournalFileName
+    {
+        get { lock (_stateLock) return _currentFilePath is null ? null : Path.GetFileName(_currentFilePath); }
+    }
+
     public event EventHandler<JournalLineReceivedEventArgs>? JournalLineReceived;
 
     public JournalWatcher(IErrorService errorService, ILogger<JournalWatcher> logger)

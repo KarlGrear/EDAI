@@ -13,5 +13,5 @@ public interface IOpenAIService
     /// and returns the raw JSON string from the first completion choice.
     /// Returns <see cref="string.Empty"/> if the API key is not configured or the response is blank.
     /// </summary>
-    Task<string> SendAsync(string prompt, CancellationToken cancellationToken = default);
+    Task<string> SendAsync(string prompt, string? modelOverride = null, CancellationToken cancellationToken = default);
 }

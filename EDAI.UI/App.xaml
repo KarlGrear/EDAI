@@ -13,6 +13,177 @@
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BoolToVis" />
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+
+            <!--
+                ToolbarComboBoxStyle
+                Use this on any ComboBox that lives inside a ToolBar/ToolBarTray.
+                The control itself is transparent with toolbar-coloured text/border.
+                The popup dropdown uses the app background/foreground so it is always
+                legible, and is outlined with the toolbar background colour so it is
+                clearly visible when it opens.
+            -->
+            <Style x:Key="ToolbarComboBoxStyle" TargetType="ComboBox">
+                <Setter Property="Foreground"     Value="{DynamicResource EDAI.Brush.ToolbarForeground}"/>
+                <Setter Property="Background"     Value="Transparent"/>
+                <Setter Property="BorderBrush"    Value="{DynamicResource EDAI.Brush.ToolbarForeground}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Padding"        Value="6,3,0,3"/>
+                <Setter Property="MaxDropDownHeight" Value="300"/>
+                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+                <Setter Property="ScrollViewer.VerticalScrollBarVisibility"   Value="Auto"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+
+                <!-- Items in the popup use app colours, not toolbar colours -->
+                <Setter Property="ItemContainerStyle">
+                    <Setter.Value>
+                        <Style TargetType="ComboBoxItem">
+                            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Foreground}"/>
+                            <Setter Property="Background" Value="{DynamicResource MaterialDesign.Brush.Background}"/>
+                            <Setter Property="Padding"    Value="10,6"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ComboBoxItem">
+                                        <Border x:Name="Bd"
+                                                Background="{TemplateBinding Background}"
+                                                Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsHighlighted" Value="True">
+                                                <Setter TargetName="Bd" Property="Background"
+                                                        Value="{DynamicResource MaterialDesign.Brush.DataGrid.RowHoverBackground}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="Bd" Property="Background"
+                                                        Value="{DynamicResource MaterialDesign.Brush.Primary.Light}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Setter.Value>
+                </Setter>
+
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ComboBox">
+                            <Grid>
+                                <!--
+                                    Border is a direct Grid child so it always spans the full
+                                    declared Width of the ComboBox, regardless of how the
+                                    ToolBar sizes the ToggleButton inside it.
+                                -->
+                                <Border x:Name="Bd"
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="2">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="20"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Path x:Name="Arrow"
+                                              Grid.Column="1"
+                                              Data="M 2,5 L 6,9 L 10,5"
+                                              Stroke="{TemplateBinding Foreground}"
+                                              StrokeThickness="1.5"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+
+                                <!--
+                                    Transparent click-catcher. OverridesDefaultStyle="True"
+                                    prevents the ToolBar's implicit ToggleButton style from
+                                    constraining the button to auto/icon size, so
+                                    HorizontalAlignment="Stretch" can fill the full border.
+                                -->
+                                <ToggleButton x:Name="ToggleButton"
+                                              OverridesDefaultStyle="True"
+                                              HorizontalAlignment="Stretch"
+                                              VerticalAlignment="Stretch"
+                                              Focusable="False"
+                                              ClickMode="Press"
+                                              IsChecked="{Binding IsDropDownOpen,
+                                                          RelativeSource={RelativeSource TemplatedParent},
+                                                          Mode=TwoWay}">
+                                    <ToggleButton.Template>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                            <Border Background="Transparent"/>
+                                        </ControlTemplate>
+                                    </ToggleButton.Template>
+                                </ToggleButton>
+
+                                <!-- Selected value (visible when an item is selected) -->
+                                <ContentPresenter x:Name="ContentSite"
+                                                  IsHitTestVisible="False"
+                                                  Content="{TemplateBinding SelectionBoxItem}"
+                                                  ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                  ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                                  Margin="7,0,24,0"
+                                                  VerticalAlignment="Center"
+                                                  HorizontalAlignment="Left"
+                                                  TextElement.Foreground="{TemplateBinding Foreground}"/>
+
+                                <!-- Hint text (visible when no item is selected) -->
+                                <TextBlock x:Name="HintText"
+                                           IsHitTestVisible="False"
+                                           Visibility="Collapsed"
+                                           Text="{Binding Path=(materialDesign:HintAssist.Hint),
+                                                  RelativeSource={RelativeSource TemplatedParent}}"
+                                           Foreground="{TemplateBinding Foreground}"
+                                           Opacity="0.55"
+                                           Margin="7,0,24,0"
+                                           VerticalAlignment="Center"/>
+
+                                <!-- Dropdown popup with app background and toolbar-coloured outline -->
+                                <Popup x:Name="PART_Popup"
+                                       AllowsTransparency="True"
+                                       IsOpen="{TemplateBinding IsDropDownOpen}"
+                                       Placement="Bottom"
+                                       Focusable="False"
+                                       PopupAnimation="{DynamicResource {x:Static SystemParameters.ComboBoxPopupAnimationKey}}">
+                                    <Border x:Name="DropDownBorder"
+                                            MinWidth="{Binding ActualWidth,
+                                                       RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                            MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                                            Background="{DynamicResource MaterialDesign.Brush.Background}"
+                                            BorderBrush="{DynamicResource EDAI.Brush.ToolbarBackground}"
+                                            BorderThickness="1">
+                                        <Border.Effect>
+                                            <DropShadowEffect Direction="270" ShadowDepth="3"
+                                                              BlurRadius="8" Opacity="0.4" Color="Black"/>
+                                        </Border.Effect>
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                                      HorizontalScrollBarVisibility="Disabled">
+                                            <ItemsPresenter KeyboardNavigation.TabNavigation="Contained"
+                                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                        </ScrollViewer>
+                                    </Border>
+                                </Popup>
+                            </Grid>
+
+                            <ControlTemplate.Triggers>
+                                <!-- Arrow flips when the dropdown is open -->
+                                <Trigger Property="IsDropDownOpen" Value="True">
+                                    <Setter TargetName="Arrow" Property="Data" Value="M 2,9 L 6,5 L 10,9"/>
+                                </Trigger>
+                                <!-- Subtle hover feedback on the border -->
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Opacity" Value="0.8"/>
+                                </Trigger>
+                                <!-- Show hint when no item is selected -->
+                                <Trigger Property="SelectedItem" Value="{x:Null}">
+                                    <Setter TargetName="HintText"    Property="Visibility" Value="Visible"/>
+                                    <Setter TargetName="ContentSite" Property="Visibility" Value="Hidden"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

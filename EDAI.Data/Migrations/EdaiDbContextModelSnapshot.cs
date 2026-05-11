@@ -41,11 +41,17 @@ namespace EDAI.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("AnnounceCondition")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("AnnounceFields")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("AnnounceKeys")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("AnnounceTitle")
                         .HasColumnType("INTEGER");
 
                     b.Property<int?>("CategoryId")
@@ -57,6 +63,9 @@ namespace EDAI.Data.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("DisplayCondition")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("DisplayFields")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -64,11 +73,17 @@ namespace EDAI.Data.Migrations
                     b.Property<bool>("DisplayKeys")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("DisplayTitle")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("ExpectedResultsSchema")
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsEnabled")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("ModelOverride")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Prompt")
                         .IsRequired()
@@ -81,6 +96,12 @@ namespace EDAI.Data.Migrations
                     b.Property<int>("SecondaryWaitTimeMs")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("SendFullTriggerEvent")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("SendToAi")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool>("ShowTrayNotification")
                         .HasColumnType("INTEGER");
 
@@ -88,8 +109,8 @@ namespace EDAI.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("TitleDisplayMode")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("TriggerCondition")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("TriggeringEvents")
                         .IsRequired()
@@ -131,7 +152,7 @@ namespace EDAI.Data.Migrations
                     b.Property<string>("SecondaryEventsJson")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("SessionHistoryId")
+                    b.Property<int?>("SessionHistoryId")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("Timestamp")
@@ -184,6 +205,24 @@ namespace EDAI.Data.Migrations
                     b.Property<bool>("AlwaysOnTop")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("ButtonForeground")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CustomBackgroundColor")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CustomForegroundColor")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FontFamily")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("FontSize")
+                        .HasColumnType("REAL");
+
+                    b.Property<bool>("IsMaximized")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("OpenAiApiKeyEncrypted")
                         .HasColumnType("TEXT");
 
@@ -191,8 +230,21 @@ namespace EDAI.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("PrimaryColor")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("ShowSplashScreen")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Theme")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ToolbarBackground")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ToolbarForeground")
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("TrayNotificationsEnabled")
@@ -242,8 +294,7 @@ namespace EDAI.Data.Migrations
                     b.HasOne("EDAI.Data.Entities.SessionHistoryEntity", "SessionHistory")
                         .WithMany("ResponseLogs")
                         .HasForeignKey("SessionHistoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("EventConfiguration");
 

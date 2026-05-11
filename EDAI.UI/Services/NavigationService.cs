@@ -9,32 +9,62 @@ public sealed class NavigationService : INavigationService
 
     public NavigationService(IServiceProvider services) => _services = services;
 
-    public void ShowSettings()            => ShowWindow<Views.SettingsWindow>();
-    public void ShowEventConfigurations() => ShowWindow<Views.EventConfigSelectionWindow>();
-    public void ShowCategoryManagement()  => ShowWindow<Views.CategoryManagementWindow>();
+    public void ShowSettings()            => ShowSingle<Views.SettingsWindow>();
+    public void ShowTheme()               => ShowSingle<Views.ThemeWindow>();
+    public void ShowAbout()               => ShowSingle<Views.AboutWindow>();
+    public void ShowEventConfigurations() => ShowSingle<Views.EventConfigSelectionWindow>();
+
+    public void ShowCategoryManagement(Action? onClosed = null)
+    {
+        if (!TryGetNewWindow<Views.CategoryManagementWindow>(out var w)) return;
+        if (onClosed != null) w.Closed += (_, _) => onClosed();
+        w.Show();
+    }
 
     public void ShowEventConfigEdit(int? configId, Action? onClosed = null)
     {
-        var window = _services.GetRequiredService<Views.EventConfigEditWindow>();
-        window.Owner = Application.Current.MainWindow;
-        if (onClosed != null)
-            window.Closed += (_, _) => onClosed();
-        _ = window.LoadAsync(configId);
-        window.Show();
+        if (!TryGetNewWindow<Views.EventConfigEditWindow>(out var w)) return;
+        if (onClosed != null) w.Closed += (_, _) => onClosed();
+        _ = w.LoadAsync(configId);
+        w.Show();
     }
 
     public void ShowTest(int? configId = null)
     {
-        var window = _services.GetRequiredService<Views.TestWindow>();
-        window.Owner = Application.Current.MainWindow;
-        _ = window.LoadAsync(configId);
-        window.Show();
+        if (!TryGetNewWindow<Views.TestWindow>(out var w)) return;
+        _ = w.LoadAsync(configId);
+        w.Show();
     }
 
-    private void ShowWindow<TWindow>() where TWindow : Window
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private void ShowSingle<TWindow>() where TWindow : Window
     {
-        var window = _services.GetRequiredService<TWindow>();
+        if (!TryGetNewWindow<TWindow>(out var w)) return;
+        w.Show();
+    }
+
+    /// <summary>
+    /// If a window of type <typeparamref name="TWindow"/> is already open, brings it
+    /// to the foreground and returns <c>false</c> (caller should not open another).
+    /// Otherwise resolves a new instance from DI, sets the owner and font, and
+    /// returns <c>true</c> so the caller can finish configuring and show it.
+    /// </summary>
+    private bool TryGetNewWindow<TWindow>(out TWindow window) where TWindow : Window
+    {
+        var existing = Application.Current.Windows.OfType<TWindow>().FirstOrDefault();
+        if (existing != null)
+        {
+            if (existing.WindowState == WindowState.Minimized)
+                existing.WindowState = WindowState.Normal;
+            existing.Activate();
+            window = null!;
+            return false;
+        }
+
+        window = _services.GetRequiredService<TWindow>();
         window.Owner = Application.Current.MainWindow;
-        window.Show();
+        App.ApplyFontToWindow(window);
+        return true;
     }
 }

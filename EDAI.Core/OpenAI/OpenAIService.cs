@@ -23,7 +23,7 @@ public sealed class OpenAIService : IOpenAIService
         _logger = logger;
     }
 
-    public async Task<string> SendAsync(string prompt, CancellationToken cancellationToken = default)
+    public async Task<string> SendAsync(string prompt, string? modelOverride = null, CancellationToken cancellationToken = default)
     {
         var settingsModel = await _settings.GetAsync().ConfigureAwait(false);
 
@@ -33,8 +33,9 @@ public sealed class OpenAIService : IOpenAIService
             return string.Empty;
         }
 
+        var model = !string.IsNullOrWhiteSpace(modelOverride) ? modelOverride : settingsModel.OpenAiModel;
         var client = new OpenAIClient(new ApiKeyCredential(settingsModel.OpenAiApiKey));
-        var chatClient = client.GetChatClient(settingsModel.OpenAiModel);
+        var chatClient = client.GetChatClient(model);
 
         var messages = new List<ChatMessage>
         {
@@ -47,14 +48,36 @@ public sealed class OpenAIService : IOpenAIService
             ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat()
         };
 
-        _logger.LogDebug("Sending prompt to OpenAI model {Model}", settingsModel.OpenAiModel);
+        var sw = System.Diagnostics.Stopwatch.StartNew();
 
-        var completion = await chatClient
-            .CompleteChatAsync(messages, options, cancellationToken)
-            .ConfigureAwait(false);
+        _logger.LogInformation(
+            "OpenAI Request | Model: {Model} | URL: https://api.openai.com/v1/chat/completions\n" +
+            "--- System ---\n{System}\n--- User ---\n{Prompt}",
+            model, PromptBuilder.SystemPersona, prompt);
 
-        var text = completion.Value.Content[0].Text;
-        _logger.LogDebug("Received {Length} chars from OpenAI", text?.Length ?? 0);
-        return text ?? string.Empty;
+        try
+        {
+            var completion = await chatClient
+                .CompleteChatAsync(messages, options, cancellationToken)
+                .ConfigureAwait(false);
+
+            sw.Stop();
+            var text = completion.Value.Content[0].Text ?? string.Empty;
+
+            _logger.LogInformation(
+                "OpenAI Response | Model: {Model} | Elapsed: {ElapsedMs}ms\n--- Response ---\n{Response}",
+                model, (long)sw.Elapsed.TotalMilliseconds, text);
+
+            return text;
+        }
+        catch (Exception ex)
+        {
+            sw.Stop();
+            _logger.LogError(ex,
+                "OpenAI Error | Model: {Model} | Elapsed: {ElapsedMs}ms | {Message}",
+                model, (long)sw.Elapsed.TotalMilliseconds, ex.Message);
+            _errorService.ReportMinor(nameof(OpenAIService), $"OpenAI call failed: {ex.Message}", ex);
+            return string.Empty;
+        }
     }
 }

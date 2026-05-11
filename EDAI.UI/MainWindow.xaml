@@ -12,51 +12,65 @@
 
     <DockPanel>
         <!-- Toolbar -->
-        <ToolBarTray DockPanel.Dock="Top" Background="{DynamicResource MaterialDesign.Brush.Primary}">
-            <ToolBar Style="{DynamicResource MaterialDesignToolBar}" ClipToBounds="False">
+        <ToolBarTray DockPanel.Dock="Top" Background="{DynamicResource EDAI.Brush.ToolbarBackground}">
+            <ToolBar Style="{DynamicResource MaterialDesignToolBar}" ClipToBounds="False"
+                     Background="{DynamicResource EDAI.Brush.ToolbarBackground}">
                 <TextBlock Text="ELITE DANGEROUS AI"
                            FontWeight="Bold" FontSize="13"
                            VerticalAlignment="Center" Margin="4,0,16,0"
-                           Foreground="{DynamicResource MaterialDesign.Brush.Primary.Foreground}" />
+                           Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}" />
                 <Separator />
                 <Button Command="{Binding NavigateToSettingsCommand}"
                         Style="{StaticResource MaterialDesignToolButton}"
-                        ToolTip="Settings">
+                        ToolTip="Application Settings"
+                        Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}">
                     <materialDesign:PackIcon Kind="Cog" />
                 </Button>
                 <Button Command="{Binding NavigateToEventConfigurationsCommand}"
                         Style="{StaticResource MaterialDesignToolButton}"
-                        ToolTip="Event Configurations">
+                        ToolTip="Event Configurations"
+                        Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}">
                     <materialDesign:PackIcon Kind="ListBox" />
                 </Button>
                 <Button Command="{Binding NavigateToTestCommand}"
                         Style="{StaticResource MaterialDesignToolButton}"
-                        ToolTip="Test">
+                        ToolTip="Test"
+                        Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}">
                     <materialDesign:PackIcon Kind="TestTube" />
                 </Button>
                 <Separator />
                 <ToggleButton IsChecked="{Binding IsAlwaysOnTop}"
                               Command="{Binding ToggleAlwaysOnTopCommand}"
                               Style="{StaticResource MaterialDesignFlatToggleButton}"
-                              ToolTip="Always On Top">
+                              ToolTip="Always On Top"
+                              Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}">
                     <materialDesign:PackIcon Kind="Pin" />
                 </ToggleButton>
                 <ToggleButton IsChecked="{Binding IsTtsEnabled}"
                               Command="{Binding ToggleTtsCommand}"
                               Style="{StaticResource MaterialDesignFlatToggleButton}"
-                              ToolTip="TTS On/Off">
+                              ToolTip="TTS On/Off"
+                              Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}">
                     <materialDesign:PackIcon Kind="VolumeHigh" />
                 </ToggleButton>
-                <Button Command="{Binding ToggleThemeCommand}"
+                <Button Command="{Binding NavigateToThemeCommand}"
                         Style="{StaticResource MaterialDesignToolButton}"
-                        ToolTip="Toggle Light/Dark Theme">
-                    <materialDesign:PackIcon Kind="ThemeLightDark" />
+                        ToolTip="Customize Theme Colors"
+                        Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}">
+                    <materialDesign:PackIcon Kind="Palette" />
                 </Button>
                 <Separator />
                 <Button Command="{Binding ClearResponsesCommand}"
                         Style="{StaticResource MaterialDesignToolButton}"
-                        ToolTip="Clear Responses">
+                        ToolTip="Clear Responses"
+                        Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}">
                     <materialDesign:PackIcon Kind="DeleteSweep" />
+                </Button>
+                <Button Command="{Binding ShowAboutCommand}"
+                        Style="{StaticResource MaterialDesignToolButton}"
+                        ToolTip="About Elite Dangerous AI"
+                        Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}">
+                    <materialDesign:PackIcon Kind="InformationOutline" />
                 </Button>
             </ToolBar>
         </ToolBarTray>
@@ -71,7 +85,7 @@
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <TextBlock Text="{Binding ErrorMessage}"
-                           Visibility="{Binding ErrorMessage, Converter={StaticResource BoolToVis}}"
+                           Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}"
                            Foreground="#FFEE3333"
                            FontSize="11" FontStyle="Italic" />
             </StatusBarItem>
@@ -101,7 +115,8 @@
                                                    FontWeight="SemiBold"
                                                    FontSize="12"
                                                    Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
-                                                   Margin="0,0,0,4" />
+                                                   Margin="0,0,0,4"
+                                                   Visibility="{Binding ShowTitle, Converter={StaticResource BoolToVis}}" />
                                         <TextBlock Text="{Binding Text}"
                                                    TextWrapping="Wrap"
                                                    FontSize="13" />

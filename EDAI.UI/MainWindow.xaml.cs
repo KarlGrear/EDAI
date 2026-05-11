@@ -9,7 +9,6 @@ public partial class MainWindow : Window
 {
     private readonly MainWindowViewModel _viewModel;
     private readonly ISettingsRepository _settingsRepo;
-    private bool _isRealClose;
 
     public MainWindow(MainWindowViewModel viewModel, ISettingsRepository settingsRepo)
     {
@@ -27,30 +26,30 @@ public partial class MainWindow : Window
 
     protected override void OnClosing(CancelEventArgs e)
     {
-        if (!_isRealClose)
-        {
-            e.Cancel = true;
-            Hide();
-            return;
-        }
-        SaveWindowState();
         base.OnClosing(e);
+
+        // Capture all state synchronously while the window handle is still valid.
+        bool maximized = WindowState == WindowState.Maximized;
+        double w = maximized ? RestoreBounds.Width  : ActualWidth;
+        double h = maximized ? RestoreBounds.Height : ActualHeight;
+        double l = maximized ? RestoreBounds.Left   : Left;
+        double t = maximized ? RestoreBounds.Top    : Top;
+        bool alwaysOnTop = Topmost;
+
+        SaveWindowStateAsync(w, h, l, t, maximized, alwaysOnTop);
     }
 
-    public void RealClose()
-    {
-        _isRealClose = true;
-        Close();
-    }
-
-    private async void SaveWindowState()
+    private async void SaveWindowStateAsync(
+        double width, double height, double left, double top,
+        bool isMaximized, bool alwaysOnTop)
     {
         var settings = await _settingsRepo.GetAsync();
-        settings.WindowWidth = ActualWidth;
-        settings.WindowHeight = ActualHeight;
-        settings.WindowLeft = Left;
-        settings.WindowTop = Top;
-        settings.AlwaysOnTop = Topmost;
+        settings.WindowWidth  = width;
+        settings.WindowHeight = height;
+        settings.WindowLeft   = left;
+        settings.WindowTop    = top;
+        settings.IsMaximized  = isMaximized;
+        settings.AlwaysOnTop  = alwaysOnTop;
         await _settingsRepo.SaveAsync(settings);
     }
 }

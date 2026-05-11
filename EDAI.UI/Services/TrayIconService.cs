@@ -45,12 +45,7 @@ public sealed class TrayIconService : IDisposable
         }
     }
 
-    private static void ExitApplication()
-    {
-        if (Application.Current.MainWindow is MainWindow mw)
-            mw.RealClose();
-        Application.Current.Shutdown();
-    }
+    private static void ExitApplication() => Application.Current.Shutdown();
 
     public void Dispose()
     {

@@ -95,12 +95,19 @@ public sealed class EventConfigurationRepository : IEventConfigurationRepository
         SecondaryWaitTimeMs = e.SecondaryWaitTimeMs,
         Prompt = e.Prompt,
         ExpectedResultsSchema = e.ExpectedResultsSchema,
-        TitleDisplayMode = e.TitleDisplayMode,
+        DisplayTitle = e.DisplayTitle,
+        AnnounceTitle = e.AnnounceTitle,
         DisplayFields = e.DisplayFields,
         DisplayKeys = e.DisplayKeys,
         AnnounceFields = e.AnnounceFields,
         AnnounceKeys = e.AnnounceKeys,
         ShowTrayNotification = e.ShowTrayNotification,
+        SendToAi = e.SendToAi,
+        SendFullTriggerEvent = e.SendFullTriggerEvent,
+        ModelOverride = e.ModelOverride,
+        TriggerCondition = e.TriggerCondition,
+        DisplayCondition = e.DisplayCondition,
+        AnnounceCondition = e.AnnounceCondition,
         CreatedAt = e.CreatedAt,
         UpdatedAt = e.UpdatedAt,
     };
@@ -123,11 +130,18 @@ public sealed class EventConfigurationRepository : IEventConfigurationRepository
         e.SecondaryWaitTimeMs = m.SecondaryWaitTimeMs;
         e.Prompt = m.Prompt;
         e.ExpectedResultsSchema = m.ExpectedResultsSchema;
-        e.TitleDisplayMode = m.TitleDisplayMode;
+        e.DisplayTitle = m.DisplayTitle;
+        e.AnnounceTitle = m.AnnounceTitle;
         e.DisplayFields = [.. m.DisplayFields];
         e.DisplayKeys = m.DisplayKeys;
         e.AnnounceFields = [.. m.AnnounceFields];
         e.AnnounceKeys = m.AnnounceKeys;
         e.ShowTrayNotification = m.ShowTrayNotification;
+        e.SendToAi = m.SendToAi;
+        e.SendFullTriggerEvent = m.SendFullTriggerEvent;
+        e.ModelOverride = m.ModelOverride;
+        e.TriggerCondition = m.TriggerCondition;
+        e.DisplayCondition = m.DisplayCondition;
+        e.AnnounceCondition = m.AnnounceCondition;
     }
 }

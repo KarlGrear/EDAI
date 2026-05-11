@@ -3,25 +3,64 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
         Title="Elite Dangerous AI"
-        Width="400" Height="200"
+        Width="540" Height="300"
         WindowStyle="None"
-        WindowStartupLocation="CenterScreen"
+        WindowStartupLocation="Manual"
         ResizeMode="NoResize"
-        Background="{DynamicResource MaterialDesign.Brush.Background}">
-    <Grid Margin="24">
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <TextBlock Text="ELITE DANGEROUS AI"
-                       Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-                       HorizontalAlignment="Center"
-                       Foreground="{DynamicResource PrimaryHueMidBrush}" />
-            <TextBlock Text="Initialising systems..."
-                       Style="{StaticResource MaterialDesignBody2TextBlock}"
-                       HorizontalAlignment="Center"
-                       Margin="0,12,0,0"
-                       Opacity="0.7" />
-            <ProgressBar IsIndeterminate="True"
-                         Margin="0,16,0,0"
-                         Style="{StaticResource MaterialDesignLinearProgressBar}" />
-        </StackPanel>
-    </Grid>
+        TextElement.Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"
+        Background="{DynamicResource MaterialDesign.Brush.Background}"
+        FontFamily="{materialDesign:MaterialDesignFont}">
+
+    <!-- 1px primary-colour frame gives the borderless window definition -->
+    <Border BorderBrush="{DynamicResource MaterialDesign.Brush.Primary}"
+            BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="48" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Header bar — mirrors the main window toolbar -->
+            <Border Grid.Row="0"
+                    Background="{DynamicResource MaterialDesign.Brush.Primary}">
+                <TextBlock Text="ELITE DANGEROUS AI"
+                           FontWeight="Bold"
+                           FontSize="14"
+                           VerticalAlignment="Center"
+                           Margin="16,0,0,0"
+                           Foreground="{DynamicResource MaterialDesign.Brush.Primary.Foreground}" />
+            </Border>
+
+            <!-- Title and author credit -->
+            <StackPanel Grid.Row="1"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center">
+                <TextBlock Text="ELITE DANGEROUS AI"
+                           Style="{StaticResource MaterialDesignHeadline4TextBlock}"
+                           HorizontalAlignment="Center"
+                           Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                <TextBlock Text="AI-Powered Journal Intelligence"
+                           Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                           HorizontalAlignment="Center"
+                           Margin="0,6,0,0"
+                           Opacity="0.7" />
+                <TextBlock Text="by Karl Grear"
+                           Style="{StaticResource MaterialDesignBody2TextBlock}"
+                           HorizontalAlignment="Center"
+                           Margin="0,20,0,0"
+                           Opacity="0.55" />
+            </StackPanel>
+
+            <!-- Status and progress bar -->
+            <StackPanel Grid.Row="2" Margin="24,0,24,24">
+                <TextBlock Text="Initialising systems..."
+                           Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                           Opacity="0.65"
+                           Margin="0,0,0,8" />
+                <ProgressBar IsIndeterminate="True"
+                             Style="{StaticResource MaterialDesignLinearProgressBar}" />
+            </StackPanel>
+        </Grid>
+    </Border>
 </Window>

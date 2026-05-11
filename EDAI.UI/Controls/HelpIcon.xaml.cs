@@ -1,16 +1,12 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 
 namespace EDAI.UI.Controls;
 
-/// <summary>
-/// Small info-icon button that reveals a dismissible help bubble explaining a UI setting.
-/// Bind <see cref="HelpText"/> to supply the explanation text shown inside the bubble.
-/// </summary>
 public partial class HelpIcon : UserControl
 {
-    /// <summary>Identifies the <see cref="HelpText"/> dependency property.</summary>
     public static readonly DependencyProperty HelpTextProperty =
         DependencyProperty.Register(
             nameof(HelpText),
@@ -18,10 +14,6 @@ public partial class HelpIcon : UserControl
             typeof(HelpIcon),
             new PropertyMetadata(string.Empty, OnHelpTextChanged));
 
-    /// <summary>
-    /// The explanation text displayed inside the help bubble when the icon is clicked.
-    /// Supports multi-line text via standard newline characters.
-    /// </summary>
     public string HelpText
     {
         get => (string)GetValue(HelpTextProperty);
@@ -35,14 +27,21 @@ public partial class HelpIcon : UserControl
 
     private static void OnHelpTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        // Mirror the DP value to the TextBlock directly so the popup content
-        // stays in sync even when the popup hasn't been opened yet.
         if (d is HelpIcon icon)
             icon.HelpTextBlock.Text = (string)(e.NewValue ?? string.Empty);
     }
 
     private void TriggerButton_Click(object sender, RoutedEventArgs e)
     {
+        if (!HelpPopup.IsOpen && HelpPopup.Child is FrameworkElement popupRoot)
+        {
+            // Popup lives in a separate HwndHost visual tree.  DynamicResource bindings
+            // on the Border handle background/border/foreground from Application resources,
+            // but inherited font properties never cross the HwndHost boundary — push them
+            // in explicitly each time the popup opens.
+            TextElement.SetFontFamily(popupRoot, FontFamily);
+            TextElement.SetFontSize(popupRoot, FontSize);
+        }
         HelpPopup.IsOpen = !HelpPopup.IsOpen;
         e.Handled = true;
     }

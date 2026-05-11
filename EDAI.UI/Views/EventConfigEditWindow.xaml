@@ -3,8 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
         xmlns:controls="clr-namespace:EDAI.UI.Controls"
-        Title="Event Configuration"
-        Width="720" Height="780"
+        Title="Event Settings — Elite Dangerous AI"
+        Width="860" Height="700"
+        MinWidth="720" MinHeight="500"
         WindowStartupLocation="CenterOwner"
         TextElement.Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"
         Background="{DynamicResource MaterialDesign.Brush.Background}"
@@ -16,7 +17,7 @@
         <Border DockPanel.Dock="Bottom"
                 BorderThickness="0,1,0,0"
                 BorderBrush="{DynamicResource MaterialDesign.Brush.DataGrid.RowHoverBackground}"
-                Padding="16,8">
+                Padding="24,12">
             <Grid>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                     <Button Content="Delete"
@@ -52,339 +53,566 @@
             </Grid>
         </Border>
 
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="16">
-            <StackPanel>
+        <!-- ── Phase tabs ─────────────────────────────────────────── -->
+        <TabControl Style="{StaticResource MaterialDesignTabControl}">
 
-                <!-- ── Basic info ─────────────────────────────────── -->
+            <!-- ══ GENERAL ══════════════════════════════════════════ -->
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Cog" VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <TextBlock Text="General" VerticalAlignment="Center" />
+                    </StackPanel>
+                </TabItem.Header>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="24" MaxWidth="560" HorizontalAlignment="Left">
 
-                <!-- Title -->
-                <DockPanel Margin="0,0,0,4">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Required. A short descriptive name for this configuration. Shown in the AI response panel and any tray notifications when this event fires." />
-                    <TextBlock Text="Title" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
-                </DockPanel>
-                <TextBox materialDesign:HintAssist.Hint="Title *"
-                         Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Margin="0,0,0,12" />
+                        <DockPanel Margin="0,0,0,4">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="Required. A short descriptive name for this configuration. Shown in the AI response panel and any tray notifications when this event fires." />
+                            <TextBlock Text="Title" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                        </DockPanel>
+                        <TextBox materialDesign:HintAssist.Hint="Title *"
+                                 Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 Margin="0,0,0,16" />
 
-                <!-- Description -->
-                <DockPanel Margin="0,0,0,4">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Optional internal notes. Not shown during normal operation — purely for your own reference when browsing configurations." />
-                    <TextBlock Text="Description" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
-                </DockPanel>
-                <TextBox materialDesign:HintAssist.Hint="Description (optional)"
-                         Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Margin="0,0,0,12" />
+                        <DockPanel Margin="0,0,0,4">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="Optional internal notes. Not shown during normal operation — purely for your own reference when browsing configurations." />
+                            <TextBlock Text="Description" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                        </DockPanel>
+                        <TextBox materialDesign:HintAssist.Hint="Description (optional)"
+                                 Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 Margin="0,0,0,16" />
 
-                <!-- Category -->
-                <DockPanel Margin="0,0,0,4">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Organise configurations into named groups. Categories appear as a filter on the selection screen, making it easier to find configs when you have many. Use 'Manage' to create or rename categories." />
-                    <TextBlock Text="Category" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
-                </DockPanel>
-                <Grid Margin="0,0,0,12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="8" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <ComboBox Grid.Column="0"
-                              materialDesign:HintAssist.Hint="Category (optional)"
-                              ItemsSource="{Binding Categories}"
-                              SelectedItem="{Binding SelectedCategory}"
-                              Style="{StaticResource MaterialDesignOutlinedComboBox}">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Name}" />
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                    <Button Grid.Column="2"
-                            Content="Manage"
-                            Command="{Binding ManageCategoriesCommand}"
-                            Style="{StaticResource MaterialDesignOutlinedButton}" />
-                </Grid>
+                        <DockPanel Margin="0,0,0,4">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="Organise configurations into named groups. Categories appear as a filter on the selection screen. Use 'Manage' to create or rename categories." />
+                            <TextBlock Text="Category" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                        </DockPanel>
+                        <Grid Margin="0,0,0,20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ComboBox Grid.Column="0"
+                                      materialDesign:HintAssist.Hint="Category (optional)"
+                                      ItemsSource="{Binding Categories}"
+                                      SelectedItem="{Binding SelectedCategory}"
+                                      Style="{StaticResource MaterialDesignOutlinedComboBox}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <Button Grid.Column="2"
+                                    Content="Manage"
+                                    Command="{Binding ManageCategoriesCommand}"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}" />
+                        </Grid>
 
-                <!-- Enabled -->
-                <DockPanel Margin="0,0,0,16">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="When unchecked, this configuration is completely inactive — no AI calls are made even when matching events are received. You can also toggle this from the selection screen without opening the edit form." />
-                    <CheckBox Content="Enabled"
-                              IsChecked="{Binding IsEnabled}"
-                              Style="{StaticResource MaterialDesignCheckBox}" />
-                </DockPanel>
+                        <DockPanel Margin="0,0,0,20">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="When unchecked, this configuration is completely inactive — no AI calls are made even when matching events are received. You can also toggle this from the selection screen." />
+                            <CheckBox Content="Enabled"
+                                      IsChecked="{Binding IsEnabled}"
+                                      Style="{StaticResource MaterialDesignCheckBox}" />
+                        </DockPanel>
 
-                <!-- ── Triggering Events ──────────────────────────── -->
-                <DockPanel Margin="0,0,0,4">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="The Elite Dangerous journal event types that activate this pipeline. If any one of the listed types is received (OR logic), the full pipeline runs. Event type names are case-insensitive. Common examples: FSDJump, Docked, ScanDetailed, MissionCompleted, FighterDestroyed." />
-                    <TextBlock Text="Triggering Events"
-                               Style="{StaticResource MaterialDesignSubtitle2TextBlock}" />
-                </DockPanel>
-                <ItemsControl ItemsSource="{Binding TriggeringEvents}" Margin="0,0,0,4">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Margin="0,2">
+                        <DockPanel Margin="0,0,0,4">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="Override the AI model for this configuration only. Leave empty to use the model configured in Application Settings. Example: gpt-4o-mini" />
+                            <TextBlock Text="Model Override" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                        </DockPanel>
+                        <ComboBox materialDesign:HintAssist.Hint="Leave empty to use Application Settings model"
+                                  ItemsSource="{Binding OpenAiModels}"
+                                  Text="{Binding ModelOverride, UpdateSourceTrigger=PropertyChanged}"
+                                  IsEditable="True"
+                                  Style="{StaticResource MaterialDesignOutlinedComboBox}" />
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ══ TRIGGER ══════════════════════════════════════════ -->
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="LightningBolt" VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <TextBlock Text="Trigger" VerticalAlignment="Center" />
+                    </StackPanel>
+                </TabItem.Header>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="24">
+
+                        <!-- Pipeline flags -->
+                        <Border Background="{DynamicResource MaterialDesign.Brush.DataGrid.RowHoverBackground}"
+                                CornerRadius="4"
+                                Padding="16,12"
+                                Margin="0,0,0,24">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,10">
+                                    <controls:HelpIcon DockPanel.Dock="Right"
+                                                       HelpText="When checked, EDAI sends the prompt to the AI and uses the response for display and announcements. When unchecked, the AI call is skipped — Processing tab settings are not used." />
+                                    <CheckBox Content="Send to AI"
+                                              IsChecked="{Binding SendToAi}"
+                                              Style="{StaticResource MaterialDesignCheckBox}" />
+                                </DockPanel>
+                                <DockPanel>
+                                    <controls:HelpIcon DockPanel.Dock="Right"
+                                                       HelpText="When checked, the full triggering event JSON is appended to the prompt. Uncheck when the prompt provides enough context via |trigger.*| tokens and you don't want to send the raw JSON." />
+                                    <CheckBox Content="Send Full Trigger Event"
+                                              IsChecked="{Binding SendFullTriggerEvent}"
+                                              IsEnabled="{Binding IsSendFullTriggerEventEnabled}"
+                                              Style="{StaticResource MaterialDesignCheckBox}" />
+                                </DockPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Triggering Events -->
+                        <DockPanel Margin="0,0,0,8">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="The Elite Dangerous journal event types that activate this pipeline. If any one of the listed types is received (OR logic), the full pipeline runs. Common examples: FSDJump, Docked, ScanDetailed, MissionCompleted." />
+                            <TextBlock Text="Triggering Events"
+                                       Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                                       Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                        </DockPanel>
+
+                        <ItemsControl ItemsSource="{Binding TriggeringEvents}" Margin="0,0,0,8">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="12"
+                                            Background="{DynamicResource MaterialDesign.Brush.Primary}"
+                                            Padding="10,3,2,3"
+                                            Margin="0,2,6,2">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding}"
+                                                       VerticalAlignment="Center"
+                                                       FontSize="12"
+                                                       Foreground="{DynamicResource MaterialDesign.Brush.Primary.Foreground}" />
+                                            <Button Command="{Binding DataContext.RemoveTriggeringEventCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource MaterialDesignIconButton}"
+                                                    Foreground="{DynamicResource MaterialDesign.Brush.Primary.Foreground}"
+                                                    Width="20" Height="20" Padding="2">
+                                                <materialDesign:PackIcon Kind="Close" Width="10" Height="10" />
+                                            </Button>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Grid Margin="0,0,0,24">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                     materialDesign:HintAssist.Hint="Add event type (e.g. FSDJump)"
+                                     Text="{Binding NewTriggeringEvent, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+                            <Button Grid.Column="2"
+                                    Content="Add"
+                                    Command="{Binding AddTriggeringEventCommand}"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}" />
+                        </Grid>
+
+                        <!-- Trigger Condition -->
+                        <DockPanel Margin="0,0,0,4">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="Optional condition that must be true for this pipeline to fire. Leave blank to always fire. Supports token replacement and comparison operators: == != &gt; &lt; &gt;= &lt;=&#x0a;&#x0a;Examples:&#x0a;  |trigger.SystemAllegiance| == &quot;Independent&quot;&#x0a;  |trigger.Population| &gt; 1000000" />
+                            <TextBlock Text="Trigger Condition (optional)" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                        </DockPanel>
+                        <TextBox materialDesign:HintAssist.Hint='e.g.  |trigger.SystemAllegiance| == "Independent"'
+                                 Text="{Binding TriggerCondition, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 FontFamily="Consolas" FontSize="12" />
+
+                        <!-- Secondary Events -->
+                        <StackPanel IsEnabled="{Binding IsSecondaryEventsEnabled}" Margin="0,24,0,0">
+                            <DockPanel Margin="0,0,0,8">
+                                <controls:HelpIcon DockPanel.Dock="Right"
+                                                   HelpText="Optional events to collect after the trigger fires. EDAI waits up to the configured milliseconds gathering any matching events, then includes them all in the AI prompt for richer context." />
+                                <TextBlock Text="Secondary Events"
+                                           Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                                           Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                            </DockPanel>
+
+                            <ItemsControl ItemsSource="{Binding SecondaryEvents}" Margin="0,0,0,8">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border CornerRadius="12"
+                                                Background="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                Padding="10,3,2,3"
+                                                Margin="0,2,6,2">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding}"
+                                                           VerticalAlignment="Center"
+                                                           FontSize="12"
+                                                           Foreground="{DynamicResource MaterialDesign.Brush.Primary.Foreground}" />
+                                                <Button Command="{Binding DataContext.RemoveSecondaryEventCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding}"
+                                                        Style="{StaticResource MaterialDesignIconButton}"
+                                                        Foreground="{DynamicResource MaterialDesign.Brush.Primary.Foreground}"
+                                                        Width="20" Height="20" Padding="2">
+                                                    <materialDesign:PackIcon Kind="Close" Width="10" Height="10" />
+                                                </Button>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <Grid Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="8" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="{Binding}" VerticalAlignment="Center" />
-                                <Button Grid.Column="1"
-                                        Command="{Binding DataContext.RemoveTriggeringEventCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                        CommandParameter="{Binding}"
-                                        Style="{StaticResource MaterialDesignIconButton}"
-                                        Width="24" Height="24">
-                                    <materialDesign:PackIcon Kind="Close" Width="14" Height="14" />
-                                </Button>
+                                <TextBox Grid.Column="0"
+                                         materialDesign:HintAssist.Hint="Add secondary event type"
+                                         Text="{Binding NewSecondaryEvent, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+                                <Button Grid.Column="2"
+                                        Content="Add"
+                                        Command="{Binding AddSecondaryEventCommand}"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}" />
                             </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <Grid Margin="0,0,0,16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0"
-                             materialDesign:HintAssist.Hint="Add event type (e.g. FSDJump)"
-                             Text="{Binding NewTriggeringEvent, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                             Margin="0,0,8,0" />
-                    <Button Grid.Column="1"
-                            Content="Add"
-                            Command="{Binding AddTriggeringEventCommand}"
-                            Style="{StaticResource MaterialDesignOutlinedButton}" />
-                </Grid>
 
-                <!-- ── Secondary Events ───────────────────────────── -->
-                <DockPanel Margin="0,0,0,4">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Optional events to collect after the trigger fires. EDAI waits up to the configured milliseconds gathering any matching events, then includes them all in the AI prompt for richer context. Useful for correlating events that arrive together — e.g. collecting 'ScanDetailed' entries after a 'FSSAllBodiesFound' trigger." />
-                    <TextBlock Text="Secondary Events"
-                               Style="{StaticResource MaterialDesignSubtitle2TextBlock}" />
-                </DockPanel>
-                <ItemsControl ItemsSource="{Binding SecondaryEvents}" Margin="0,0,0,4">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Margin="0,2">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="{Binding}" VerticalAlignment="Center" />
-                                <Button Grid.Column="1"
-                                        Command="{Binding DataContext.RemoveSecondaryEventCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                        CommandParameter="{Binding}"
-                                        Style="{StaticResource MaterialDesignIconButton}"
-                                        Width="24" Height="24">
-                                    <materialDesign:PackIcon Kind="Close" Width="14" Height="14" />
-                                </Button>
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <Grid Margin="0,0,0,4">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0"
-                             materialDesign:HintAssist.Hint="Add secondary event type"
-                             Text="{Binding NewSecondaryEvent, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                             Margin="0,0,8,0" />
-                    <Button Grid.Column="1"
-                            Content="Add"
-                            Command="{Binding AddSecondaryEventCommand}"
-                            Style="{StaticResource MaterialDesignOutlinedButton}" />
-                </Grid>
+                            <DockPanel Margin="0,0,0,4">
+                                <controls:HelpIcon DockPanel.Dock="Right"
+                                                   HelpText="How many milliseconds to wait after the trigger fires before building the AI prompt. During this window, matching secondary events are collected. Set to 0 to skip secondary event collection." />
+                                <TextBlock Text="Secondary Wait (ms)" FontSize="12" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                            </DockPanel>
+                            <TextBox materialDesign:HintAssist.Hint="Milliseconds to wait (e.g. 1000)"
+                                     Text="{Binding SecondaryWaitTimeMs, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+                        </StackPanel>
 
-                <!-- Secondary wait -->
-                <DockPanel Margin="0,0,0,4">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="How many milliseconds to wait after the trigger fires before building the AI prompt. During this window, matching secondary events are collected. Set to 0 to skip secondary event collection entirely and build the prompt immediately." />
-                    <TextBlock Text="Secondary Wait (ms)" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
-                </DockPanel>
-                <TextBox materialDesign:HintAssist.Hint="Secondary Wait (ms)"
-                         Text="{Binding SecondaryWaitTimeMs, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Margin="0,0,0,16" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
 
-                <!-- ── Prompt ──────────────────────────────────────── -->
-                <DockPanel Margin="0,0,0,4">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="The instruction sent to OpenAI after the ship-AI persona. Describe what you want the AI to analyse or report. The triggering event JSON and any secondary event JSON are appended automatically — you don't need to include them here. Example: 'Analyse the jump destination system and assess any threats or points of interest.'" />
-                    <TextBlock Text="Prompt"
-                               Style="{StaticResource MaterialDesignSubtitle2TextBlock}" />
-                </DockPanel>
-                <TextBox materialDesign:HintAssist.Hint="Instruction sent to the AI after the persona..."
-                         Text="{Binding Prompt, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         AcceptsReturn="True" TextWrapping="Wrap"
-                         MinHeight="80" MaxHeight="160"
-                         VerticalScrollBarVisibility="Auto"
-                         Margin="0,0,0,12" />
+            <!-- ══ PROCESSING ════════════════════════════════════════ -->
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Memory" VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <TextBlock Text="Processing" VerticalAlignment="Center" />
+                    </StackPanel>
+                </TabItem.Header>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="24">
 
-                <!-- ── Expected Results Schema ─────────────────────── -->
-                <DockPanel Margin="0,0,0,4">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText='A JSON template defining the structure of the AI response. The AI will fill in the values for each key you define. Example: {"system_name": "", "threat_level": "", "recommendation": ""}&#x0a;&#x0a;Keys defined here are used in Display Fields and Announce Fields below.' />
-                    <TextBlock Text="Expected Results Schema (JSON)"
-                               Style="{StaticResource MaterialDesignSubtitle2TextBlock}" />
-                </DockPanel>
-                <TextBox materialDesign:HintAssist.Hint="Paste JSON schema here"
-                         Text="{Binding ExpectedResultsSchema, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         AcceptsReturn="True" TextWrapping="Wrap"
-                         MinHeight="60" MaxHeight="120"
-                         VerticalScrollBarVisibility="Auto"
-                         Margin="0,0,0,16"
-                         FontFamily="Consolas" FontSize="12" />
+                        <!-- Disabled notice -->
+                        <Border CornerRadius="4" Padding="12,10" Margin="0,0,0,16"
+                                Background="{DynamicResource MaterialDesign.Brush.DataGrid.RowHoverBackground}">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsPromptEnabled}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="InformationOutline"
+                                                         VerticalAlignment="Center"
+                                                         Margin="0,0,8,0"
+                                                         Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                                <TextBlock Text="Enable 'Send to AI' on the Trigger tab to configure processing."
+                                           VerticalAlignment="Center" FontSize="12" />
+                            </StackPanel>
+                        </Border>
 
-                <!-- ── Display ─────────────────────────────────────── -->
-                <DockPanel Margin="0,0,0,4">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Controls what appears in the EDAI response panel when this event fires. Add the JSON keys whose values you want shown, in the order you want them displayed." />
-                    <TextBlock Text="Display"
-                               Style="{StaticResource MaterialDesignSubtitle2TextBlock}" />
-                </DockPanel>
+                        <StackPanel IsEnabled="{Binding IsPromptEnabled}">
 
-                <!-- Title display mode -->
-                <DockPanel Margin="0,0,0,4">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Controls whether and how the configuration title is shown when a response fires.&#x0a;• None — title not shown or spoken&#x0a;• Display — title appears in the response panel&#x0a;• Announce — title is spoken via TTS&#x0a;• Both — title shown and spoken" />
-                    <TextBlock Text="Title Display Mode" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
-                </DockPanel>
-                <ComboBox materialDesign:HintAssist.Hint="Title Display Mode"
-                          ItemsSource="{Binding TitleDisplayModes}"
-                          SelectedItem="{Binding SelectedTitleDisplayMode}"
-                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                          Margin="0,0,0,8" />
+                            <!-- Prompt -->
+                            <DockPanel Margin="0,0,0,4">
+                                <controls:HelpIcon DockPanel.Dock="Right"
+                                                   HelpText="The instruction sent to OpenAI. Use |trigger.fieldName| tokens to embed specific trigger values. Example: 'Analyse the system |trigger.StarSystem| and assess threats.'" />
+                                <TextBlock Text="Prompt"
+                                           Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                                           Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                            </DockPanel>
+                            <TextBox materialDesign:HintAssist.Hint="Instruction sent to the AI after the persona..."
+                                     Text="{Binding Prompt, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     AcceptsReturn="True" TextWrapping="Wrap"
+                                     MinHeight="80" MaxHeight="200"
+                                     VerticalScrollBarVisibility="Auto"
+                                     Margin="0,0,0,20" />
 
-                <!-- Display fields -->
-                <DockPanel Margin="0,0,0,4">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Keys from the Expected Results Schema whose values you want shown in the response panel. Add them in display order. Leave empty to suppress all display output for this configuration." />
-                    <TextBlock Text="Display Fields" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
-                </DockPanel>
-                <ItemsControl ItemsSource="{Binding DisplayFields}" Margin="0,0,0,4">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Margin="0,2">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="{Binding}" VerticalAlignment="Center" />
-                                <Button Grid.Column="1"
-                                        Command="{Binding DataContext.RemoveDisplayFieldCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                        CommandParameter="{Binding}"
-                                        Style="{StaticResource MaterialDesignIconButton}"
-                                        Width="24" Height="24">
-                                    <materialDesign:PackIcon Kind="Close" Width="14" Height="14" />
-                                </Button>
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <Grid Margin="0,0,0,4">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0"
-                             materialDesign:HintAssist.Hint="Add display field key"
-                             Text="{Binding NewDisplayField, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                             Margin="0,0,8,0" />
-                    <Button Grid.Column="1"
-                            Content="Add"
-                            Command="{Binding AddDisplayFieldCommand}"
-                            Style="{StaticResource MaterialDesignOutlinedButton}" />
-                </Grid>
+                            <!-- Expected Results Schema -->
+                            <DockPanel Margin="0,0,0,4">
+                                <controls:HelpIcon DockPanel.Dock="Right"
+                                                   HelpText='A JSON template defining the structure of the AI response. Example: {"system_name": "", "threat_level": "", "recommendation": ""}&#x0a;&#x0a;Keys defined here become available as |result.key| tokens on the Action tab.' />
+                                <TextBlock Text="Expected Results Schema (JSON)"
+                                           Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                                           Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                            </DockPanel>
+                            <TextBox materialDesign:HintAssist.Hint="Paste JSON schema here"
+                                     Text="{Binding ExpectedResultsSchema, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     AcceptsReturn="True" TextWrapping="Wrap"
+                                     MinHeight="60" MaxHeight="120"
+                                     VerticalScrollBarVisibility="Auto"
+                                     FontFamily="Consolas" FontSize="12"
+                                     Margin="0,0,0,8" />
 
-                <!-- Display keys checkbox -->
-                <DockPanel Margin="0,0,0,16">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText='When checked, field names are shown before their values (e.g. "Threat Level: High"). When unchecked, only the value is shown ("High").' />
-                    <CheckBox Content="Show Keys in Display"
-                              IsChecked="{Binding DisplayKeys}"
-                              Style="{StaticResource MaterialDesignCheckBox}" />
-                </DockPanel>
+                            <!-- Available tokens -->
+                            <Border Background="{DynamicResource MaterialDesign.Brush.DataGrid.RowHoverBackground}"
+                                    CornerRadius="4"
+                                    Padding="12,8">
+                                <StackPanel>
+                                    <TextBlock Text="Available Tokens" FontSize="11"
+                                               Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                               Margin="0,0,0,4" />
+                                    <TextBlock Text="{Binding AvailableTokens}"
+                                               FontSize="11" FontFamily="Consolas"
+                                               TextWrapping="Wrap"
+                                               Opacity="0.85" />
+                                </StackPanel>
+                            </Border>
 
-                <!-- ── Announce (TTS) ──────────────────────────────── -->
-                <DockPanel Margin="0,0,0,4">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Controls what EDAI speaks aloud when this event fires. Add the JSON keys whose values you want announced, in speech order. Leave empty to suppress TTS for this configuration. Requires TTS to be enabled globally in Settings." />
-                    <TextBlock Text="Announce (TTS)"
-                               Style="{StaticResource MaterialDesignSubtitle2TextBlock}" />
-                </DockPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
 
-                <!-- Announce fields -->
-                <DockPanel Margin="0,0,0,4">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Keys from the Expected Results Schema to speak aloud via TTS. Add them in the order you want them spoken. Leave empty to suppress speech output for this configuration." />
-                    <TextBlock Text="Announce Fields" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
-                </DockPanel>
-                <ItemsControl ItemsSource="{Binding AnnounceFields}" Margin="0,0,0,4">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Margin="0,2">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="{Binding}" VerticalAlignment="Center" />
-                                <Button Grid.Column="1"
-                                        Command="{Binding DataContext.RemoveAnnounceFieldCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                        CommandParameter="{Binding}"
-                                        Style="{StaticResource MaterialDesignIconButton}"
-                                        Width="24" Height="24">
-                                    <materialDesign:PackIcon Kind="Close" Width="14" Height="14" />
-                                </Button>
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <Grid Margin="0,0,0,4">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0"
-                             materialDesign:HintAssist.Hint="Add announce field key"
-                             Text="{Binding NewAnnounceField, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                             Margin="0,0,8,0" />
-                    <Button Grid.Column="1"
-                            Content="Add"
-                            Command="{Binding AddAnnounceFieldCommand}"
-                            Style="{StaticResource MaterialDesignOutlinedButton}" />
-                </Grid>
+            <!-- ══ ACTION ════════════════════════════════════════════ -->
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Bullhorn" VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <TextBlock Text="Action" VerticalAlignment="Center" />
+                    </StackPanel>
+                </TabItem.Header>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="24">
 
-                <!-- Announce keys checkbox -->
-                <DockPanel Margin="0,0,0,16">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText='When checked, field names are spoken before their values (e.g. "Threat Level: High"). When unchecked, only the value is spoken ("High").' />
-                    <CheckBox Content="Speak Keys in Announcement"
-                              IsChecked="{Binding AnnounceKeys}"
-                              Style="{StaticResource MaterialDesignCheckBox}" />
-                </DockPanel>
+                        <!-- Display | Announce side by side -->
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
 
-                <!-- ── Tray ────────────────────────────────────────── -->
-                <DockPanel Margin="0,0,0,8">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Show a Windows tray balloon notification when this configuration fires and the app is minimised. The global 'Tray Notifications Enabled' toggle in Settings must also be on for notifications to appear." />
-                    <CheckBox Content="Show Tray Notification"
-                              IsChecked="{Binding ShowTrayNotification}"
-                              Style="{StaticResource MaterialDesignCheckBox}" />
-                </DockPanel>
+                            <!-- ── Display ─────────────────────────── -->
+                            <Border Grid.Column="0"
+                                    BorderBrush="{DynamicResource MaterialDesign.Brush.DataGrid.RowHoverBackground}"
+                                    BorderThickness="1"
+                                    CornerRadius="4"
+                                    Padding="16">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,12">
+                                        <controls:HelpIcon DockPanel.Dock="Right"
+                                                           HelpText="Controls what appears in the EDAI response panel when this event fires. Use |fieldname| tokens in each line to insert AI response values." />
+                                        <TextBlock Text="Display"
+                                                   Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                                                   Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                                    </DockPanel>
 
-            </StackPanel>
-        </ScrollViewer>
+                                    <DockPanel Margin="0,0,0,12">
+                                        <controls:HelpIcon DockPanel.Dock="Right"
+                                                           HelpText="When checked, the configuration title is shown as a heading above the response in the EDAI display panel." />
+                                        <CheckBox Content="Show Title"
+                                                  IsChecked="{Binding DisplayTitle}"
+                                                  Style="{StaticResource MaterialDesignCheckBox}" />
+                                    </DockPanel>
+
+                                    <TextBlock Text="Display Lines" FontSize="12" Margin="0,0,0,4"
+                                               Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+
+                                    <ItemsControl ItemsSource="{Binding DisplayFields}" Margin="0,0,0,4">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{DynamicResource MaterialDesign.Brush.DataGrid.RowHoverBackground}"
+                                                        CornerRadius="4"
+                                                        Padding="8,4"
+                                                        Margin="0,2">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{Binding}"
+                                                                   VerticalAlignment="Center"
+                                                                   FontFamily="Consolas" FontSize="11"
+                                                                   TextWrapping="Wrap" />
+                                                        <Button Grid.Column="1"
+                                                                Command="{Binding DataContext.RemoveDisplayFieldCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding}"
+                                                                Style="{StaticResource MaterialDesignIconButton}"
+                                                                Width="24" Height="24">
+                                                            <materialDesign:PackIcon Kind="Close" Width="12" Height="12" />
+                                                        </Button>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <Grid Margin="0,4,0,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="4" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Grid.Column="0"
+                                                 materialDesign:HintAssist.Hint="e.g. Arrived in |result.system_name|"
+                                                 Text="{Binding NewDisplayField, UpdateSourceTrigger=PropertyChanged}"
+                                                 Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+                                        <Button Grid.Column="2"
+                                                Content="Add"
+                                                Command="{Binding AddDisplayFieldCommand}"
+                                                Style="{StaticResource MaterialDesignOutlinedButton}" />
+                                    </Grid>
+
+                                    <DockPanel Margin="0,0,0,12">
+                                        <controls:HelpIcon DockPanel.Dock="Right"
+                                                           HelpText='When checked, field names are shown before their values (e.g. "Threat Level: High"). When unchecked, only the value is shown.' />
+                                        <CheckBox Content="Show Keys"
+                                                  IsChecked="{Binding DisplayKeys}"
+                                                  Style="{StaticResource MaterialDesignCheckBox}" />
+                                    </DockPanel>
+
+                                    <TextBlock Text="Display Condition (optional)" FontSize="12" Margin="0,0,0,4"
+                                               Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                                    <TextBox materialDesign:HintAssist.Hint='e.g.  |result.threat_level| == "High"'
+                                             Text="{Binding DisplayCondition, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                             FontFamily="Consolas" FontSize="11" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- ── Announce ────────────────────────── -->
+                            <Border Grid.Column="2"
+                                    BorderBrush="{DynamicResource MaterialDesign.Brush.DataGrid.RowHoverBackground}"
+                                    BorderThickness="1"
+                                    CornerRadius="4"
+                                    Padding="16">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,12">
+                                        <controls:HelpIcon DockPanel.Dock="Right"
+                                                           HelpText="Controls what EDAI speaks aloud when this event fires. Use |fieldname| tokens in each line to insert AI response values. Requires TTS enabled in Application Settings." />
+                                        <TextBlock Text="Announce (TTS)"
+                                                   Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                                                   Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                                    </DockPanel>
+
+                                    <DockPanel Margin="0,0,0,12">
+                                        <controls:HelpIcon DockPanel.Dock="Right"
+                                                           HelpText="When checked, the configuration title is spoken aloud before the announcement text." />
+                                        <CheckBox Content="Speak Title"
+                                                  IsChecked="{Binding AnnounceTitle}"
+                                                  Style="{StaticResource MaterialDesignCheckBox}" />
+                                    </DockPanel>
+
+                                    <TextBlock Text="Announce Lines" FontSize="12" Margin="0,0,0,4"
+                                               Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+
+                                    <ItemsControl ItemsSource="{Binding AnnounceFields}" Margin="0,0,0,4">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{DynamicResource MaterialDesign.Brush.DataGrid.RowHoverBackground}"
+                                                        CornerRadius="4"
+                                                        Padding="8,4"
+                                                        Margin="0,2">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{Binding}"
+                                                                   VerticalAlignment="Center"
+                                                                   FontFamily="Consolas" FontSize="11"
+                                                                   TextWrapping="Wrap" />
+                                                        <Button Grid.Column="1"
+                                                                Command="{Binding DataContext.RemoveAnnounceFieldCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding}"
+                                                                Style="{StaticResource MaterialDesignIconButton}"
+                                                                Width="24" Height="24">
+                                                            <materialDesign:PackIcon Kind="Close" Width="12" Height="12" />
+                                                        </Button>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <Grid Margin="0,4,0,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="4" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Grid.Column="0"
+                                                 materialDesign:HintAssist.Hint="e.g. You have arrived in |result.system_name|"
+                                                 Text="{Binding NewAnnounceField, UpdateSourceTrigger=PropertyChanged}"
+                                                 Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+                                        <Button Grid.Column="2"
+                                                Content="Add"
+                                                Command="{Binding AddAnnounceFieldCommand}"
+                                                Style="{StaticResource MaterialDesignOutlinedButton}" />
+                                    </Grid>
+
+                                    <DockPanel Margin="0,0,0,12">
+                                        <controls:HelpIcon DockPanel.Dock="Right"
+                                                           HelpText='When checked, field names are spoken before their values (e.g. "Threat Level: High"). When unchecked, only the value is spoken.' />
+                                        <CheckBox Content="Speak Keys"
+                                                  IsChecked="{Binding AnnounceKeys}"
+                                                  Style="{StaticResource MaterialDesignCheckBox}" />
+                                    </DockPanel>
+
+                                    <TextBlock Text="Announce Condition (optional)" FontSize="12" Margin="0,0,0,4"
+                                               Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                                    <TextBox materialDesign:HintAssist.Hint='e.g.  |result.threat_level| == "High"'
+                                             Text="{Binding AnnounceCondition, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                             FontFamily="Consolas" FontSize="11" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- Tray Notification -->
+                        <DockPanel>
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="Show a Windows tray balloon notification when this configuration fires and the app is minimised. The global 'Tray Notifications Enabled' toggle in Settings must also be on." />
+                            <CheckBox Content="Show Tray Notification"
+                                      IsChecked="{Binding ShowTrayNotification}"
+                                      Style="{StaticResource MaterialDesignCheckBox}" />
+                        </DockPanel>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+        </TabControl>
     </DockPanel>
 </Window>

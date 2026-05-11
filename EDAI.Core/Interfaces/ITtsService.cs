@@ -26,4 +26,14 @@ public interface ITtsService
     /// No-op when <see cref="IsEnabled"/> is <c>false</c> or text is blank.
     /// </summary>
     void Enqueue(string text);
+
+    /// <summary>
+    /// Enqueues <paramref name="text"/> and returns a <see cref="Task"/> that completes
+    /// only after that specific utterance has finished being spoken. The task respects
+    /// <paramref name="ct"/> — if cancelled, the utterance is still spoken (speech cannot
+    /// be interrupted mid-word) but the task transitions to cancelled so the caller
+    /// is unblocked.
+    /// No-op (returns completed task) when <see cref="IsEnabled"/> is <c>false</c> or text is blank.
+    /// </summary>
+    Task SpeakAndWaitAsync(string text, CancellationToken ct = default);
 }

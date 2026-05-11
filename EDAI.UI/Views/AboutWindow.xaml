@@ -1,0 +1,96 @@
+<Window x:Class="EDAI.UI.Views.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+        Title="About — Elite Dangerous AI"
+        Width="440" Height="360"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        TextElement.Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"
+        Background="{DynamicResource MaterialDesign.Brush.Background}"
+        FontFamily="{materialDesign:MaterialDesignFont}">
+
+    <Border BorderBrush="{DynamicResource MaterialDesign.Brush.Primary}"
+            BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="48" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Header bar -->
+            <Border Grid.Row="0"
+                    Background="{DynamicResource MaterialDesign.Brush.Primary}">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                    <materialDesign:PackIcon Kind="Rocket" Width="20" Height="20"
+                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary.Foreground}"
+                                             VerticalAlignment="Center" Margin="0,0,10,0" />
+                    <TextBlock Text="About Elite Dangerous AI"
+                               FontWeight="Bold" FontSize="14"
+                               Foreground="{DynamicResource MaterialDesign.Brush.Primary.Foreground}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Content -->
+            <StackPanel Grid.Row="1"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Margin="32,0">
+
+                <TextBlock Text="ELITE DANGEROUS AI"
+                           Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                           HorizontalAlignment="Center"
+                           Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+
+                <TextBlock Text="AI-Powered Journal Intelligence"
+                           Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                           HorizontalAlignment="Center"
+                           Margin="0,4,0,0"
+                           Opacity="0.7" />
+
+                <Separator Margin="0,20,0,20" />
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Author"
+                               Opacity="0.55" FontSize="12" Margin="0,0,16,8" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Karl Grear" FontSize="12" Margin="0,0,0,8" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Platform"
+                               Opacity="0.55" FontSize="12" Margin="0,0,16,8" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text=".NET 10 · WPF · Material Design"
+                               FontSize="12" Margin="0,0,0,8" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="AI"
+                               Opacity="0.55" FontSize="12" Margin="0,0,16,0" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="OpenAI API" FontSize="12" />
+                </Grid>
+
+                <TextBlock Text="Inspired by Elite Dangerous and the commanders who fly her."
+                           Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center"
+                           Margin="0,24,0,0"
+                           Opacity="0.5" />
+            </StackPanel>
+
+            <!-- Close button -->
+            <Button Grid.Row="2"
+                    Content="Close"
+                    Click="CloseButton_Click"
+                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                    HorizontalAlignment="Right"
+                    Margin="0,0,24,20" />
+        </Grid>
+    </Border>
+</Window>

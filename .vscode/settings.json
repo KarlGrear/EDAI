@@ -1,0 +1,11 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "EDAI.db",
+            "database": "${workspaceFolder:EliteDangerousAI}/EDAI.UI/bin/Debug/net10.0-windows/EDAI.db"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}

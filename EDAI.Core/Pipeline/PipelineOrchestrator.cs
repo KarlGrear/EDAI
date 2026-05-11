@@ -20,6 +20,7 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
     private readonly IResponseParser _responseParser;
     private readonly IOutputDispatcher _outputDispatcher;
     private readonly IErrorService _errorService;
+    private readonly IJournalAuxFileReader _auxReader;
     private readonly ILogger<PipelineOrchestrator> _logger;
 
     private readonly ConcurrentDictionary<int, ConfigPipeline> _pipelines = new();
@@ -33,6 +34,7 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
         IResponseParser responseParser,
         IOutputDispatcher outputDispatcher,
         IErrorService errorService,
+        IJournalAuxFileReader auxReader,
         ILogger<PipelineOrchestrator> logger)
     {
         _triggerMatcher = triggerMatcher;
@@ -41,6 +43,7 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
         _responseParser = responseParser;
         _outputDispatcher = outputDispatcher;
         _errorService = errorService;
+        _auxReader = auxReader;
         _logger = logger;
     }
 
@@ -93,9 +96,18 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
             config.Title, triggeringEvent.EventType);
         try
         {
-            // Collect secondary events during the configured wait window.
+            if (!ConditionEvaluator.Evaluate(config.TriggerCondition, triggeringEvent.RawJson, null, _auxReader.Read))
+            {
+                _logger.LogDebug("Pipeline: {Config} trigger condition false, skipping", config.Title);
+                return;
+            }
+
             IReadOnlyList<ParsedJournalEvent> secondary = [];
-            if (config.SecondaryEvents.Count > 0 && config.SecondaryWaitTimeMs > 0)
+            var collectSecondary = config.SendToAi
+                && config.SecondaryEvents.Count > 0
+                && config.SecondaryWaitTimeMs > 0;
+
+            if (collectSecondary)
             {
                 var collector = new SecondaryEventCollector(config.SecondaryEvents);
                 lock (_collectorsLock) _activeCollectors.Add(collector);
@@ -118,15 +130,21 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
                 SecondaryEvents = secondary,
             };
 
-            _promptBuilder.Build(context);
+            if (config.SendToAi)
+            {
+                _promptBuilder.Build(context);
 
-            context.RawAiResponse = await _openAiService
-                .SendAsync(context.BuiltPrompt!, CancellationToken.None)
-                .ConfigureAwait(false);
+                context.RawAiResponse = await _openAiService
+                    .SendAsync(context.BuiltPrompt!, config.ModelOverride, CancellationToken.None)
+                    .ConfigureAwait(false);
 
-            if (string.IsNullOrWhiteSpace(context.RawAiResponse)) return;
+                if (string.IsNullOrWhiteSpace(context.RawAiResponse)) return;
+            }
 
-            context.ParsedResponse = _responseParser.Parse(context.RawAiResponse, config);
+            context.ParsedResponse = _responseParser.Parse(
+                context.RawAiResponse,
+                config,
+                context.TriggeringEvent.RawJson);
 
             await _outputDispatcher
                 .DispatchAsync(context, CancellationToken.None)

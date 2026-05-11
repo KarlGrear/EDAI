@@ -16,6 +16,11 @@ public sealed partial class CategoryManagementViewModel : ObservableObject
     [ObservableProperty] private string _editName = string.Empty;
     [ObservableProperty] private string? _errorMessage;
 
+    public event EventHandler? CloseRequested;
+
+    [RelayCommand]
+    private void Close() => CloseRequested?.Invoke(this, EventArgs.Empty);
+
     public CategoryManagementViewModel(ICategoryRepository repo)
     {
         _repo = repo;

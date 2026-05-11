@@ -11,6 +11,13 @@ namespace EDAI.Core.Pipeline;
 /// </summary>
 public sealed class PromptBuilder : IPromptBuilder
 {
+    private readonly IJournalAuxFileReader _auxReader;
+
+    public PromptBuilder(IJournalAuxFileReader auxReader)
+    {
+        _auxReader = auxReader;
+    }
+
     public const string SystemPersona =
         "You are EDAI, the onboard computer AI of an Elite Dangerous commander. " +
         "You have access to ship telemetry, navigation data, and galactic knowledge. " +
@@ -23,12 +30,20 @@ public sealed class PromptBuilder : IPromptBuilder
 
         if (!string.IsNullOrWhiteSpace(context.Config.Prompt))
         {
-            sb.AppendLine(context.Config.Prompt);
+            var resolvedPrompt = TemplateEngine.Apply(
+                context.Config.Prompt,
+                context.TriggeringEvent.RawJson,
+                resultJson: null,
+                auxProvider: _auxReader.Read);
+            sb.AppendLine(resolvedPrompt);
             sb.AppendLine();
         }
 
-        sb.AppendLine("Triggering event:");
-        sb.AppendLine(context.TriggeringEvent.RawJson);
+        if (context.Config.SendFullTriggerEvent)
+        {
+            sb.AppendLine("Triggering event:");
+            sb.AppendLine(context.TriggeringEvent.RawJson);
+        }
 
         if (context.SecondaryEvents.Count > 0)
         {

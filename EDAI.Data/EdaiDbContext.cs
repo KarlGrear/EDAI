@@ -41,7 +41,7 @@ public sealed class EdaiDbContext : DbContext
             b.HasOne(r => r.SessionHistory)
              .WithMany(s => s.ResponseLogs)
              .HasForeignKey(r => r.SessionHistoryId)
-             .OnDelete(DeleteBehavior.Cascade);
+             .OnDelete(DeleteBehavior.SetNull);
 
             b.HasOne(r => r.EventConfiguration)
              .WithMany()

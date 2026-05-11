@@ -4,59 +4,137 @@
         xmlns:materialDesign="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
         xmlns:vm="clr-namespace:EDAI.UI.ViewModels"
         Title="Event Configurations — Elite Dangerous AI"
-        Width="920" Height="620"
+        Width="1200" Height="620"
         WindowStartupLocation="CenterOwner"
         TextElement.Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"
         Background="{DynamicResource MaterialDesign.Brush.Background}"
         FontFamily="{materialDesign:MaterialDesignFont}">
 
-    <DockPanel Margin="12">
-        <!-- Toolbar -->
-        <ToolBar DockPanel.Dock="Top"
-                 Style="{DynamicResource MaterialDesignToolBar}"
-                 Margin="0,0,0,8">
-            <Button Content="New"
-                    Command="{Binding NewConfigCommand}"
-                    Style="{StaticResource MaterialDesignRaisedButton}"
-                    Margin="0,0,8,0" />
-            <Button Content="Edit"
-                    Command="{Binding EditConfigCommand}"
-                    CommandParameter="{Binding SelectedRow}"
-                    Style="{StaticResource MaterialDesignOutlinedButton}"
-                    Margin="0,0,8,0" />
-            <Button Content="Test"
-                    Command="{Binding TestConfigCommand}"
-                    CommandParameter="{Binding SelectedRow}"
-                    Style="{StaticResource MaterialDesignOutlinedButton}"
-                    ToolTip="Open test screen pre-loaded with this configuration"
-                    Margin="0,0,8,0" />
-            <Separator />
-            <TextBlock Text="Category:" VerticalAlignment="Center" Margin="0,0,4,0" />
-            <ComboBox ItemsSource="{Binding Categories}"
-                      SelectedItem="{Binding SelectedCategory}"
-                      Width="160"
-                      Style="{StaticResource MaterialDesignComboBox}"
-                      Margin="0,0,4,0">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Name, FallbackValue='(All)'}" />
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
-            <Button Content="Manage Categories"
-                    Command="{Binding ManageCategoriesCommand}"
-                    Style="{StaticResource MaterialDesignOutlinedButton}"
-                    Margin="0,0,12,0" />
-            <Separator />
-            <TextBlock Text="Search:" VerticalAlignment="Center" Margin="0,0,4,0" />
-            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                     Width="200"
-                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                     materialDesign:HintAssist.Hint="Title or trigger..." />
-        </ToolBar>
+    <DockPanel>
+        <!-- Toolbar — styled to match MainWindow toolbar -->
+        <ToolBarTray DockPanel.Dock="Top"
+                     Background="{DynamicResource EDAI.Brush.ToolbarBackground}">
+            <ToolBar Style="{DynamicResource MaterialDesignToolBar}"
+                     Background="{DynamicResource EDAI.Brush.ToolbarBackground}"
+                     ClipToBounds="False">
+                <Button Command="{Binding NewConfigCommand}"
+                        Style="{StaticResource MaterialDesignToolButton}"
+                        ToolTip="New configuration"
+                        Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Plus" VerticalAlignment="Center"/>
+                        <TextBlock Text=" New" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding EditConfigCommand}"
+                        CommandParameter="{Binding SelectedRow}"
+                        Style="{StaticResource MaterialDesignToolButton}"
+                        ToolTip="Edit selected configuration"
+                        Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Pencil" VerticalAlignment="Center"/>
+                        <TextBlock Text=" Edit" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding DuplicateConfigCommand}"
+                        CommandParameter="{Binding SelectedRow}"
+                        Style="{StaticResource MaterialDesignToolButton}"
+                        ToolTip="Copy selected configuration (appends ' - Copy' to title)"
+                        Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="ContentCopy" VerticalAlignment="Center"/>
+                        <TextBlock Text=" Duplicate" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding TestConfigCommand}"
+                        CommandParameter="{Binding SelectedRow}"
+                        Style="{StaticResource MaterialDesignToolButton}"
+                        ToolTip="Open test screen pre-loaded with this configuration"
+                        Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="TestTube" VerticalAlignment="Center"/>
+                        <TextBlock Text=" Test" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding DeleteConfigCommand}"
+                        CommandParameter="{Binding SelectedRow}"
+                        Style="{StaticResource MaterialDesignToolButton}"
+                        ToolTip="Delete selected configuration"
+                        Foreground="#FFEE3333">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Delete" VerticalAlignment="Center"/>
+                        <TextBlock Text=" Delete" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Separator />
+                <Button Command="{Binding ExportConfigCommand}"
+                        CommandParameter="{Binding SelectedRow}"
+                        Style="{StaticResource MaterialDesignToolButton}"
+                        ToolTip="Export selected configuration to a shareable .edai.json file"
+                        Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Export" VerticalAlignment="Center"/>
+                        <TextBlock Text=" Export" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding ImportConfigCommand}"
+                        Style="{StaticResource MaterialDesignToolButton}"
+                        ToolTip="Import a configuration from an .edai.json file"
+                        Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Import" VerticalAlignment="Center"/>
+                        <TextBlock Text=" Import" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Separator />
+                <TextBlock Text="Category:"
+                           VerticalAlignment="Center"
+                           Margin="0,0,4,0"
+                           Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}" />
+                <ComboBox ItemsSource="{Binding Categories}"
+                          SelectedItem="{Binding SelectedCategory}"
+                          Width="160"
+                          Style="{StaticResource ToolbarComboBoxStyle}"
+                          materialDesign:HintAssist.Hint="(All)"
+                          Margin="0,0,4,0">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <Button Command="{Binding ManageCategoriesCommand}"
+                        Style="{StaticResource MaterialDesignToolButton}"
+                        ToolTip="Add, rename, or delete categories"
+                        Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}"
+                        Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="TagMultiple" VerticalAlignment="Center"/>
+                        <TextBlock Text=" Manage" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Separator />
+                <TextBlock Text="Search:"
+                           VerticalAlignment="Center"
+                           Margin="0,0,4,0"
+                           Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}" />
+                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Width="200"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         materialDesign:HintAssist.Hint="Title or trigger..."
+                         materialDesign:HintAssist.Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}"
+                         materialDesign:HintAssist.Background="{DynamicResource EDAI.Brush.ToolbarBackground}"
+                         materialDesign:HintAssist.IsFloating="False"
+                         Padding="8,4"
+                         VerticalContentAlignment="Center"
+                         Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}"
+                         CaretBrush="{DynamicResource EDAI.Brush.ToolbarForeground}" />
+            </ToolBar>
+        </ToolBarTray>
 
         <!-- Data grid -->
         <DataGrid ItemsSource="{Binding RowsView}"
+                  Margin="16,8,16,16"
                   SelectedItem="{Binding SelectedRow}"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
@@ -65,6 +143,78 @@
                   SelectionMode="Single"
                   materialDesign:DataGridAssist.CellPadding="8 4 8 4"
                   materialDesign:DataGridAssist.ColumnHeaderPadding="8 4 8 4">
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow" BasedOn="{StaticResource MaterialDesignDataGridRow}">
+                    <Setter Property="Margin" Value="0,1,0,1" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="DataGridRow">
+                                <Grid>
+                                    <!-- Content layer: background + cells -->
+                                    <Border Background="{TemplateBinding Background}"
+                                            SnapsToDevicePixels="True">
+                                        <SelectiveScrollingGrid>
+                                            <SelectiveScrollingGrid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </SelectiveScrollingGrid.ColumnDefinitions>
+                                            <SelectiveScrollingGrid.RowDefinitions>
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="Auto" />
+                                            </SelectiveScrollingGrid.RowDefinitions>
+                                            <DataGridCellsPresenter Grid.Column="1"
+                                                                    ItemsPanel="{TemplateBinding ItemsPanel}"
+                                                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                            <DataGridDetailsPresenter Grid.Column="1"
+                                                                      Grid.Row="1"
+                                                                      SelectiveScrollingGrid.SelectiveScrollingOrientation="{Binding AreRowDetailsFrozen, ConverterParameter={x:Static SelectiveScrollingOrientation.Vertical}, Converter={x:Static DataGrid.RowDetailsScrollingConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
+                                                                      Visibility="{TemplateBinding DetailsVisibility}" />
+                                            <DataGridRowHeader Grid.RowSpan="2"
+                                                               SelectiveScrollingGrid.SelectiveScrollingOrientation="Vertical"
+                                                               Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.Row}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
+                                        </SelectiveScrollingGrid>
+                                    </Border>
+                                    <!-- Selection border overlay: drawn on top of cells so it is never obscured -->
+                                    <Border x:Name="SelectionBorder"
+                                            BorderBrush="Transparent"
+                                            BorderThickness="2"
+                                            CornerRadius="4"
+                                            IsHitTestVisible="False"
+                                            SnapsToDevicePixels="True" />
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </DataGrid.RowStyle>
+            <DataGrid.CellStyle>
+                <Style TargetType="DataGridCell" BasedOn="{StaticResource MaterialDesignDataGridCell}">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="DataGridCell">
+                                <Border Background="Transparent"
+                                        Padding="{TemplateBinding Padding}"
+                                        SnapsToDevicePixels="True">
+                                    <ContentPresenter VerticalAlignment="Center"
+                                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </DataGrid.CellStyle>
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="DataGridColumnHeader"
+                       BasedOn="{StaticResource MaterialDesignDataGridColumnHeader}">
+                    <Setter Property="Foreground"
+                            Value="{DynamicResource MaterialDesign.Brush.Primary}" />
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
             <DataGrid.InputBindings>
                 <MouseBinding MouseAction="LeftDoubleClick"
                               Command="{Binding EditConfigCommand}"

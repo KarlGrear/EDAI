@@ -1,66 +1,61 @@
-using System.Text;
 using System.Text.Json;
 using EDAI.Core.Interfaces;
 using EDAI.Core.Models;
+using EDAI.Core.Pipeline;
 using Microsoft.Extensions.Logging;
 
 namespace EDAI.Core.OpenAI;
 
 public sealed class ResponseParser : IResponseParser
 {
+    private readonly IJournalAuxFileReader _auxReader;
     private readonly ILogger<ResponseParser> _logger;
 
-    public ResponseParser(ILogger<ResponseParser> logger)
+    public ResponseParser(IJournalAuxFileReader auxReader, ILogger<ResponseParser> logger)
     {
-        _logger = logger;
+        _auxReader = auxReader;
+        _logger    = logger;
     }
 
-    public AiResponse Parse(string rawJson, EventConfigurationModel config)
+    public AiResponse Parse(string? rawJson, EventConfigurationModel config, string? triggerJson = null)
     {
         Dictionary<string, string> fields = new(StringComparer.OrdinalIgnoreCase);
 
-        try
+        if (!string.IsNullOrWhiteSpace(rawJson))
         {
-            using var doc = JsonDocument.Parse(rawJson);
-            foreach (var prop in doc.RootElement.EnumerateObject())
+            try
             {
-                var value = prop.Value.ValueKind == JsonValueKind.String
-                    ? prop.Value.GetString() ?? string.Empty
-                    : prop.Value.ToString();
-                fields[prop.Name] = value;
+                using var doc = JsonDocument.Parse(rawJson);
+                foreach (var prop in doc.RootElement.EnumerateObject())
+                {
+                    var value = prop.Value.ValueKind == JsonValueKind.String
+                        ? prop.Value.GetString() ?? string.Empty
+                        : prop.Value.ToString();
+                    fields[prop.Name] = value;
+                }
             }
-        }
-        catch (JsonException ex)
-        {
-            _logger.LogWarning(ex, "Failed to parse AI response JSON");
+            catch (JsonException ex)
+            {
+                _logger.LogWarning(ex, "Failed to parse AI response JSON");
+            }
         }
 
         var response = new AiResponse { Fields = fields };
 
         if (config.DisplayFields.Count > 0)
-            response.DisplayedOutput = FormatFields(fields, config.DisplayFields, config.DisplayKeys);
+            response.DisplayedOutput = ApplyTemplates(config.DisplayFields, triggerJson, rawJson);
 
         if (config.AnnounceFields.Count > 0)
-            response.AnnouncedOutput = FormatFields(fields, config.AnnounceFields, config.AnnounceKeys);
+            response.AnnouncedOutput = ApplyTemplates(config.AnnounceFields, triggerJson, rawJson);
 
         return response;
     }
 
-    private static string FormatFields(
-        IReadOnlyDictionary<string, string> fields,
-        IList<string> keys,
-        bool includeKeys)
+    private string ApplyTemplates(IList<string> templates, string? triggerJson, string? resultJson)
     {
-        var sb = new StringBuilder();
-        foreach (var key in keys)
-        {
-            if (!fields.TryGetValue(key, out var value)) continue;
-            if (sb.Length > 0) sb.AppendLine();
-            if (includeKeys)
-                sb.Append(key).Append(": ").Append(value);
-            else
-                sb.Append(value);
-        }
-        return sb.ToString();
+        var lines = templates
+            .Select(t => TemplateEngine.Apply(t, triggerJson, resultJson, _auxReader.Read))
+            .Where(l => !string.IsNullOrWhiteSpace(l));
+        return string.Join(Environment.NewLine, lines);
     }
 }

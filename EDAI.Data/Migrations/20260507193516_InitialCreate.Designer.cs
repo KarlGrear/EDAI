@@ -44,7 +44,7 @@ namespace EDAI.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("AnnounceFields")
+                    b.Property<List<string>>("AnnounceFields")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -60,7 +60,7 @@ namespace EDAI.Data.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("DisplayFields")
+                    b.Property<List<string>>("DisplayFields")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -77,7 +77,7 @@ namespace EDAI.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("SecondaryEvents")
+                    b.Property<List<string>>("SecondaryEvents")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -94,7 +94,7 @@ namespace EDAI.Data.Migrations
                     b.Property<int>("TitleDisplayMode")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("TriggeringEvents")
+                    b.Property<List<string>>("TriggeringEvents")
                         .IsRequired()
                         .HasColumnType("TEXT");
 

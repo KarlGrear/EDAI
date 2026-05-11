@@ -20,10 +20,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<EventLogItem> EventLog { get; } = [];
 
     [ObservableProperty] private string _statusMessage = "Ready";
-    [ObservableProperty] private string? _errorMessage;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasError))] private string? _errorMessage;
+    public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
     [ObservableProperty] private bool _isTtsEnabled = true;
     [ObservableProperty] private bool _isAlwaysOnTop;
-    [ObservableProperty] private string _currentTheme = "Dark";
 
     private const int MaxResponses = 200;
     private const int MaxEventLogItems = 500;
@@ -51,7 +51,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var settings = await _settingsRepo.GetAsync();
         IsTtsEnabled = settings.TtsEnabled;
         IsAlwaysOnTop = settings.AlwaysOnTop;
-        CurrentTheme = settings.Theme;
     }
 
     public void NotifyJournalEvent(string eventType)
@@ -64,16 +63,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 EventLog.RemoveAt(EventLog.Count - 1);
             StatusMessage = $"Last event: {eventType} at {item.TimestampDisplay}";
         });
-    }
-
-    [RelayCommand]
-    private async Task ToggleTheme()
-    {
-        CurrentTheme = CurrentTheme == "Dark" ? "Light" : "Dark";
-        App.ApplyTheme(CurrentTheme);
-        var settings = await _settingsRepo.GetAsync();
-        settings.Theme = CurrentTheme;
-        await _settingsRepo.SaveAsync(settings);
     }
 
     [RelayCommand]
@@ -106,6 +95,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private void NavigateToTest() => _navigation.ShowTest();
 
     [RelayCommand]
+    private void NavigateToTheme() => _navigation.ShowTheme();
+
+    [RelayCommand]
+    private void ShowAbout() => _navigation.ShowAbout();
+
+    [RelayCommand]
     private void ClearResponses() => Responses.Clear();
 
     private void OnResponseReceived(object? sender, AiResponseReceivedEventArgs e)
@@ -113,7 +108,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var item = new ResponseDisplayItem
         {
             ConfigTitle = e.ConfigTitle,
-            TitleDisplayMode = e.TitleDisplayMode,
+            DisplayTitle = e.DisplayTitle,
             Text = e.DisplayedOutput,
             Timestamp = e.Timestamp,
         };

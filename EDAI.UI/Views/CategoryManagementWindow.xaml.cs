@@ -13,5 +13,6 @@ public partial class CategoryManagementWindow : Window
         DataContext = viewModel;
         InitializeComponent();
         Loaded += async (_, _) => await _viewModel.LoadAsync();
+        _viewModel.CloseRequested += (_, _) => Close();
     }
 }

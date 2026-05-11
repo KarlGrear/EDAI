@@ -48,17 +48,27 @@ public sealed class SettingsRepository : ISettingsRepository
 
     private static SettingsModel ToModel(SettingEntity e) => new()
     {
-        OpenAiApiKey           = DpapiHelper.Decrypt(e.OpenAiApiKeyEncrypted),
-        OpenAiModel            = e.OpenAiModel,
-        TtsVoiceName           = e.TtsVoiceName,
-        TtsEnabled             = e.TtsEnabled,
-        AlwaysOnTop            = e.AlwaysOnTop,
+        OpenAiApiKey             = DpapiHelper.Decrypt(e.OpenAiApiKeyEncrypted),
+        OpenAiModel              = e.OpenAiModel,
+        TtsVoiceName             = e.TtsVoiceName,
+        TtsEnabled               = e.TtsEnabled,
+        AlwaysOnTop              = e.AlwaysOnTop,
+        ShowSplashScreen         = e.ShowSplashScreen,
         TrayNotificationsEnabled = e.TrayNotificationsEnabled,
-        Theme                  = e.Theme,
-        WindowWidth            = e.WindowWidth,
-        WindowHeight           = e.WindowHeight,
-        WindowLeft             = e.WindowLeft,
-        WindowTop              = e.WindowTop,
+        Theme                    = e.Theme,
+        PrimaryColor             = e.PrimaryColor,
+        CustomBackgroundColor    = e.CustomBackgroundColor,
+        CustomForegroundColor    = e.CustomForegroundColor,
+        ToolbarBackground        = e.ToolbarBackground,
+        ToolbarForeground        = e.ToolbarForeground,
+        ButtonForeground         = e.ButtonForeground,
+        FontFamily               = e.FontFamily,
+        FontSize                 = e.FontSize,
+        WindowWidth              = e.WindowWidth,
+        WindowHeight             = e.WindowHeight,
+        WindowLeft               = e.WindowLeft,
+        WindowTop                = e.WindowTop,
+        IsMaximized              = e.IsMaximized,
     };
 
     private static void ApplyToEntity(SettingsModel m, SettingEntity e)
@@ -68,11 +78,21 @@ public sealed class SettingsRepository : ISettingsRepository
         e.TtsVoiceName           = m.TtsVoiceName;
         e.TtsEnabled             = m.TtsEnabled;
         e.AlwaysOnTop            = m.AlwaysOnTop;
+        e.ShowSplashScreen       = m.ShowSplashScreen;
         e.TrayNotificationsEnabled = m.TrayNotificationsEnabled;
         e.Theme                  = m.Theme;
+        e.PrimaryColor           = m.PrimaryColor;
+        e.CustomBackgroundColor  = m.CustomBackgroundColor;
+        e.CustomForegroundColor  = m.CustomForegroundColor;
+        e.ToolbarBackground      = m.ToolbarBackground;
+        e.ToolbarForeground      = m.ToolbarForeground;
+        e.ButtonForeground       = m.ButtonForeground;
+        e.FontFamily             = m.FontFamily;
+        e.FontSize               = m.FontSize;
         e.WindowWidth            = m.WindowWidth;
         e.WindowHeight           = m.WindowHeight;
         e.WindowLeft             = m.WindowLeft;
         e.WindowTop              = m.WindowTop;
+        e.IsMaximized            = m.IsMaximized;
     }
 }

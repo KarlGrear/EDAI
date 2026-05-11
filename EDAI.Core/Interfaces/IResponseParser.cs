@@ -4,5 +4,5 @@ namespace EDAI.Core.Interfaces;
 
 public interface IResponseParser
 {
-    AiResponse Parse(string rawJson, EventConfigurationModel config);
+    AiResponse Parse(string? rawJson, EventConfigurationModel config, string? triggerJson = null);
 }
