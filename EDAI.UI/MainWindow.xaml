@@ -99,38 +99,112 @@
                 <ColumnDefinition Width="*" MinWidth="160" />
             </Grid.ColumnDefinitions>
 
-            <!-- AI Response panel -->
-            <DockPanel Grid.Column="0" Margin="8,8,0,8">
-                <TextBlock DockPanel.Dock="Top"
-                           Text="AI Responses"
-                           Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                           Margin="0,0,0,4" />
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding Responses}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="{x:Type vm:ResponseDisplayItem}">
-                                <materialDesign:Card Margin="0,0,0,8" Padding="12">
-                                    <StackPanel>
-                                        <TextBlock Text="{Binding ConfigTitle}"
-                                                   FontWeight="SemiBold"
-                                                   FontSize="12"
-                                                   Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
-                                                   Margin="0,0,0,4"
-                                                   Visibility="{Binding ShowTitle, Converter={StaticResource BoolToVis}}" />
-                                        <TextBlock Text="{Binding Text}"
-                                                   TextWrapping="Wrap"
-                                                   FontSize="13" />
-                                        <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
-                                                   FontSize="10" Opacity="0.5"
-                                                   HorizontalAlignment="Right"
-                                                   Margin="0,4,0,0" />
-                                    </StackPanel>
-                                </materialDesign:Card>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-            </DockPanel>
+            <!-- Left panel: Responses + History tabs -->
+            <TabControl Grid.Column="0" Margin="8,8,0,8"
+                        Style="{StaticResource MaterialDesignTabControl}">
+
+                <!-- ── AI Responses ─────────────────────────────── -->
+                <TabItem Header="AI Responses">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Responses}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:ResponseDisplayItem}">
+                                    <materialDesign:Card Margin="0,0,0,8" Padding="12">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding ConfigTitle}"
+                                                       FontWeight="SemiBold"
+                                                       FontSize="12"
+                                                       Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                       Margin="0,0,0,4"
+                                                       Visibility="{Binding ShowTitle, Converter={StaticResource BoolToVis}}" />
+                                            <TextBlock Text="{Binding Text}"
+                                                       TextWrapping="Wrap"
+                                                       FontSize="13" />
+                                            <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
+                                                       FontSize="10" Opacity="0.5"
+                                                       HorizontalAlignment="Right"
+                                                       Margin="0,4,0,0" />
+                                        </StackPanel>
+                                    </materialDesign:Card>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- ── History ──────────────────────────────────── -->
+                <TabItem Header="History">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding History}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:HistoryItem}">
+                                    <Expander IsExpanded="{Binding IsExpanded}"
+                                              HorizontalContentAlignment="Stretch"
+                                              Margin="0,0,0,4">
+                                        <Expander.Header>
+                                            <Grid Margin="0,4,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0"
+                                                           Text="{Binding TimestampDisplay}"
+                                                           FontSize="10" Opacity="0.6"
+                                                           VerticalAlignment="Top"
+                                                           Margin="0,2,10,0"
+                                                           FontFamily="Consolas" />
+                                                <StackPanel Grid.Column="1">
+                                                    <TextBlock Text="{Binding ConfigTitle}"
+                                                               FontWeight="SemiBold" FontSize="12"
+                                                               Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Text="{Binding Summary}"
+                                                               FontSize="11" Opacity="0.75"
+                                                               TextWrapping="Wrap"
+                                                               Margin="0,2,0,0" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Expander.Header>
+
+                                        <!-- Expanded detail -->
+                                        <Border Background="{DynamicResource MaterialDesign.Brush.DataGrid.RowHoverBackground}"
+                                                CornerRadius="4" Padding="12" Margin="0,4,0,0">
+                                            <StackPanel>
+                                                <TextBlock Text="Prompt"
+                                                           FontSize="11" FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                           Margin="0,0,0,4" />
+                                                <TextBox Text="{Binding PromptSent, Mode=OneWay}"
+                                                         IsReadOnly="True"
+                                                         TextWrapping="Wrap"
+                                                         FontFamily="Consolas" FontSize="11"
+                                                         MaxHeight="180"
+                                                         VerticalScrollBarVisibility="Auto"
+                                                         Background="Transparent"
+                                                         BorderThickness="0"
+                                                         Margin="0,0,0,12" />
+                                                <TextBlock Text="AI Response"
+                                                           FontSize="11" FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                           Margin="0,0,0,4" />
+                                                <TextBox Text="{Binding RawAiResponse, Mode=OneWay}"
+                                                         IsReadOnly="True"
+                                                         TextWrapping="Wrap"
+                                                         FontFamily="Consolas" FontSize="11"
+                                                         MaxHeight="120"
+                                                         VerticalScrollBarVisibility="Auto"
+                                                         Background="Transparent"
+                                                         BorderThickness="0" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Expander>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </TabItem>
+
+            </TabControl>
 
             <!-- Splitter -->
             <GridSplitter Grid.Column="1"

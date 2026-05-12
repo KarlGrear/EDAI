@@ -62,6 +62,14 @@ public sealed class SettingsRepository : ISettingsRepository
         ToolbarBackground        = e.ToolbarBackground,
         ToolbarForeground        = e.ToolbarForeground,
         ButtonForeground         = e.ButtonForeground,
+        ControlBackground        = e.ControlBackground,
+        ControlHoverBackground   = e.ControlHoverBackground,
+        ControlBorderColor       = e.ControlBorderColor,
+        TtsProvider              = e.TtsProvider,
+        EdgeTtsLanguage          = e.EdgeTtsLanguage,
+        EdgeTtsVoice             = e.EdgeTtsVoice,
+        EdgeTtsRate              = e.EdgeTtsRate,
+        EdgeTtsPitch             = e.EdgeTtsPitch,
         FontFamily               = e.FontFamily,
         FontSize                 = e.FontSize,
         WindowWidth              = e.WindowWidth,
@@ -69,6 +77,7 @@ public sealed class SettingsRepository : ISettingsRepository
         WindowLeft               = e.WindowLeft,
         WindowTop                = e.WindowTop,
         IsMaximized              = e.IsMaximized,
+        JournalPath              = e.JournalPath ?? SettingsModel.DefaultJournalPath,
     };
 
     private static void ApplyToEntity(SettingsModel m, SettingEntity e)
@@ -87,6 +96,14 @@ public sealed class SettingsRepository : ISettingsRepository
         e.ToolbarBackground      = m.ToolbarBackground;
         e.ToolbarForeground      = m.ToolbarForeground;
         e.ButtonForeground       = m.ButtonForeground;
+        e.ControlBackground      = m.ControlBackground;
+        e.ControlHoverBackground = m.ControlHoverBackground;
+        e.ControlBorderColor     = m.ControlBorderColor;
+        e.TtsProvider            = m.TtsProvider;
+        e.EdgeTtsLanguage        = m.EdgeTtsLanguage;
+        e.EdgeTtsVoice           = m.EdgeTtsVoice;
+        e.EdgeTtsRate            = m.EdgeTtsRate;
+        e.EdgeTtsPitch           = m.EdgeTtsPitch;
         e.FontFamily             = m.FontFamily;
         e.FontSize               = m.FontSize;
         e.WindowWidth            = m.WindowWidth;
@@ -94,5 +111,6 @@ public sealed class SettingsRepository : ISettingsRepository
         e.WindowLeft             = m.WindowLeft;
         e.WindowTop              = m.WindowTop;
         e.IsMaximized            = m.IsMaximized;
+        e.JournalPath            = m.JournalPath;
     }
 }

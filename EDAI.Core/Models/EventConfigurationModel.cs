@@ -31,6 +31,7 @@ public sealed class EventConfigurationModel
     public string? TriggerCondition { get; set; }
     public string? DisplayCondition { get; set; }
     public string? AnnounceCondition { get; set; }
+    public long TriggerTimeoutMs { get; set; }
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; set; }
 }

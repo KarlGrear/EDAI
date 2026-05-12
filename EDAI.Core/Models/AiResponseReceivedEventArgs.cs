@@ -7,4 +7,6 @@ public sealed class AiResponseReceivedEventArgs : EventArgs
     public required string? DisplayedOutput { get; init; }
     public required string? AnnouncedOutput { get; init; }
     public required DateTime Timestamp { get; init; }
+    public string PromptSent { get; init; } = string.Empty;
+    public string RawAiResponse { get; init; } = string.Empty;
 }

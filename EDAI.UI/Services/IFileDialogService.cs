@@ -16,4 +16,10 @@ public interface IFileDialogService
     /// user cancelled.
     /// </summary>
     string? OpenFile(string title, string filter);
+
+    /// <summary>
+    /// Opens a folder-browser dialog. Returns the chosen folder path, or <c>null</c>
+    /// if the user cancelled.
+    /// </summary>
+    string? BrowseFolder(string title, string? initialPath);
 }

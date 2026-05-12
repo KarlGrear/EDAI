@@ -13,11 +13,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly IOutputDispatcher _dispatcher;
     private readonly ITtsService _tts;
     private readonly ISettingsRepository _settingsRepo;
+    private readonly IResponseLogRepository _logRepo;
     private readonly INavigationService _navigation;
     private readonly IErrorService _errorService;
 
     public ObservableCollection<ResponseDisplayItem> Responses { get; } = [];
     public ObservableCollection<EventLogItem> EventLog { get; } = [];
+    public ObservableCollection<HistoryItem> History { get; } = [];
 
     [ObservableProperty] private string _statusMessage = "Ready";
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasError))] private string? _errorMessage;
@@ -27,17 +29,20 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private const int MaxResponses = 200;
     private const int MaxEventLogItems = 500;
+    private const int MaxHistory = 100;
 
     public MainWindowViewModel(
         IOutputDispatcher dispatcher,
         ITtsService tts,
         ISettingsRepository settingsRepo,
+        IResponseLogRepository logRepo,
         INavigationService navigation,
         IErrorService errorService)
     {
         _dispatcher = dispatcher;
         _tts = tts;
         _settingsRepo = settingsRepo;
+        _logRepo = logRepo;
         _navigation = navigation;
         _errorService = errorService;
 
@@ -51,6 +56,17 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var settings = await _settingsRepo.GetAsync();
         IsTtsEnabled = settings.TtsEnabled;
         IsAlwaysOnTop = settings.AlwaysOnTop;
+    }
+
+    public async Task LoadHistoryAsync()
+    {
+        var records = await _logRepo.GetRecentAsync(MaxHistory);
+        await Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            History.Clear();
+            foreach (var r in records)
+                History.Add(ToHistoryItem(r));
+        });
     }
 
     public void NotifyJournalEvent(string eventType)
@@ -105,20 +121,41 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void OnResponseReceived(object? sender, AiResponseReceivedEventArgs e)
     {
-        var item = new ResponseDisplayItem
+        var response = new ResponseDisplayItem
         {
-            ConfigTitle = e.ConfigTitle,
+            ConfigTitle  = e.ConfigTitle,
             DisplayTitle = e.DisplayTitle,
-            Text = e.DisplayedOutput,
-            Timestamp = e.Timestamp,
+            Text         = e.DisplayedOutput,
+            Timestamp    = e.Timestamp,
+        };
+        var history = new HistoryItem
+        {
+            ConfigTitle     = e.ConfigTitle,
+            DisplayedOutput = e.DisplayedOutput,
+            PromptSent      = e.PromptSent,
+            RawAiResponse   = e.RawAiResponse,
+            Timestamp       = e.Timestamp,
         };
         Application.Current.Dispatcher.InvokeAsync(() =>
         {
-            Responses.Insert(0, item);
+            Responses.Insert(0, response);
             if (Responses.Count > MaxResponses)
                 Responses.RemoveAt(Responses.Count - 1);
+
+            History.Insert(0, history);
+            if (History.Count > MaxHistory)
+                History.RemoveAt(History.Count - 1);
         });
     }
+
+    private static HistoryItem ToHistoryItem(ResponseLogModel r) => new()
+    {
+        ConfigTitle     = r.ConfigTitle ?? $"Config #{r.EventConfigurationId}",
+        DisplayedOutput = r.DisplayedOutput,
+        PromptSent      = r.PromptSent,
+        RawAiResponse   = r.RawAiResponse,
+        Timestamp       = r.Timestamp,
+    };
 
     private void OnMinorError(object? sender, EdaiErrorEventArgs e)
     {

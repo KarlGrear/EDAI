@@ -25,6 +25,9 @@ public sealed partial class ThemeViewModel : ObservableObject
         "Toolbar Background",
         "Toolbar Text",
         "Button Text",
+        "Event Background",
+        "Control Border",
+        "Control Hover",
     ];
 
     [ObservableProperty]
@@ -33,7 +36,7 @@ public sealed partial class ThemeViewModel : ObservableObject
 
     [ObservableProperty] private Color _currentColor = Color.FromRgb(0xFF, 0x6D, 0x00);
 
-    // True if the selected element has a custom override (i.e. Reset is meaningful)
+    // True when the selected element has a custom override (Reset is meaningful)
     public bool HasCustomColor => GetCurrentElementHex(_preview) != null || SelectedElement == "Accent Color";
 
     public event EventHandler? CloseRequested;
@@ -106,16 +109,19 @@ public sealed partial class ThemeViewModel : ObservableObject
     {
         var hex = SelectedElement switch
         {
-            "Accent Color"      => _preview.PrimaryColor,
-            "App Background"    => _preview.CustomBackgroundColor,
-            "App Text"          => _preview.CustomForegroundColor,
-            "Toolbar Background"=> _preview.ToolbarBackground,
-            "Toolbar Text"      => _preview.ToolbarForeground,
-            "Button Text"       => _preview.ButtonForeground,
-            _                   => null,
+            "Accent Color"       => _preview.PrimaryColor,
+            "App Background"     => _preview.CustomBackgroundColor,
+            "App Text"           => _preview.CustomForegroundColor,
+            "Toolbar Background" => _preview.ToolbarBackground,
+            "Toolbar Text"       => _preview.ToolbarForeground,
+            "Button Text"        => _preview.ButtonForeground,
+            "Event Background"   => _preview.ControlBackground,
+            "Control Border"     => _preview.ControlBorderColor,
+            "Control Hover"      => _preview.ControlHoverBackground,
+            _                    => null,
         };
 
-        // Fallback to visible color for elements without a custom override
+        // Fallback to a representative color when no custom override is set
         if (hex == null)
         {
             hex = SelectedElement switch
@@ -126,6 +132,9 @@ public sealed partial class ThemeViewModel : ObservableObject
                 "Toolbar Background" => _preview.PrimaryColor,
                 "Toolbar Text"       => "#FFFFFF",
                 "Button Text"        => "#FFFFFF",
+                "Event Background"   => "#1E1E1E",
+                "Control Border"     => "#606060",
+                "Control Hover"      => "#909090",
                 _                    => "#FF6D00",
             };
         }
@@ -141,6 +150,9 @@ public sealed partial class ThemeViewModel : ObservableObject
         "Toolbar Background" => s.ToolbarBackground,
         "Toolbar Text"       => s.ToolbarForeground,
         "Button Text"        => s.ButtonForeground,
+        "Event Background"   => s.ControlBackground,
+        "Control Border"     => s.ControlBorderColor,
+        "Control Hover"      => s.ControlHoverBackground,
         _                    => null,
     };
 
@@ -148,12 +160,15 @@ public sealed partial class ThemeViewModel : ObservableObject
     {
         switch (SelectedElement)
         {
-            case "Accent Color":        s.PrimaryColor          = hex ?? "#FF6D00"; break;
-            case "App Background":      s.CustomBackgroundColor = hex; break;
-            case "App Text":            s.CustomForegroundColor = hex; break;
-            case "Toolbar Background":  s.ToolbarBackground     = hex; break;
-            case "Toolbar Text":        s.ToolbarForeground     = hex; break;
-            case "Button Text":         s.ButtonForeground      = hex; break;
+            case "Accent Color":        s.PrimaryColor            = hex ?? "#FF6D00"; break;
+            case "App Background":      s.CustomBackgroundColor   = hex; break;
+            case "App Text":            s.CustomForegroundColor   = hex; break;
+            case "Toolbar Background":  s.ToolbarBackground       = hex; break;
+            case "Toolbar Text":        s.ToolbarForeground       = hex; break;
+            case "Button Text":         s.ButtonForeground        = hex; break;
+            case "Event Background":    s.ControlBackground       = hex; break;
+            case "Control Border":      s.ControlBorderColor      = hex; break;
+            case "Control Hover":       s.ControlHoverBackground  = hex; break;
         }
     }
 
@@ -173,6 +188,9 @@ public sealed partial class ThemeViewModel : ObservableObject
         ToolbarBackground        = src.ToolbarBackground,
         ToolbarForeground        = src.ToolbarForeground,
         ButtonForeground         = src.ButtonForeground,
+        ControlBackground        = src.ControlBackground,
+        ControlHoverBackground   = src.ControlHoverBackground,
+        ControlBorderColor       = src.ControlBorderColor,
         FontFamily               = src.FontFamily,
         FontSize                 = src.FontSize,
         WindowWidth              = src.WindowWidth,

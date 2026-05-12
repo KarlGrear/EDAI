@@ -99,7 +99,7 @@
             <StackPanel Grid.Column="2">
                 <TextBlock Text="R" FontSize="10" Opacity="0.6" HorizontalAlignment="Center" Margin="0,0,0,2"/>
                 <TextBox x:Name="RInput"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Style="{StaticResource EDAI.Form.TextBox}"
                          materialDesign:TextFieldAssist.TextBoxViewMargin="2 0 2 0"
                          FontSize="12" TextAlignment="Center"
                          LostFocus="OnRgbLostFocus"
@@ -110,7 +110,7 @@
             <StackPanel Grid.Column="4">
                 <TextBlock Text="G" FontSize="10" Opacity="0.6" HorizontalAlignment="Center" Margin="0,0,0,2"/>
                 <TextBox x:Name="GInput"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Style="{StaticResource EDAI.Form.TextBox}"
                          materialDesign:TextFieldAssist.TextBoxViewMargin="2 0 2 0"
                          FontSize="12" TextAlignment="Center"
                          LostFocus="OnRgbLostFocus"
@@ -121,7 +121,7 @@
             <StackPanel Grid.Column="6">
                 <TextBlock Text="B" FontSize="10" Opacity="0.6" HorizontalAlignment="Center" Margin="0,0,0,2"/>
                 <TextBox x:Name="BInput"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Style="{StaticResource EDAI.Form.TextBox}"
                          materialDesign:TextFieldAssist.TextBoxViewMargin="2 0 2 0"
                          FontSize="12" TextAlignment="Center"
                          LostFocus="OnRgbLostFocus"
@@ -139,7 +139,7 @@
 
             <TextBox x:Name="HexInput"
                      Grid.Column="0"
-                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                     Style="{StaticResource EDAI.Form.TextBox}"
                      materialDesign:HintAssist.Hint="#RRGGBB"
                      FontFamily="Consolas" FontSize="13"
                      LostFocus="OnHexLostFocus"

@@ -120,7 +120,7 @@
                            Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}" />
                 <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                          Width="200"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Style="{StaticResource EDAI.Form.TextBox}"
                          materialDesign:HintAssist.Hint="Title or trigger..."
                          materialDesign:HintAssist.Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}"
                          materialDesign:HintAssist.Background="{DynamicResource EDAI.Brush.ToolbarBackground}"
@@ -128,6 +128,7 @@
                          Padding="8,4"
                          VerticalContentAlignment="Center"
                          Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}"
+                         BorderBrush="{DynamicResource EDAI.Brush.ToolbarForeground}"
                          CaretBrush="{DynamicResource EDAI.Brush.ToolbarForeground}" />
             </ToolBar>
         </ToolBarTray>
@@ -227,7 +228,7 @@
                         <DataTemplate DataType="{x:Type vm:EventConfigRowViewModel}">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <CheckBox IsChecked="{Binding IsEnabled, UpdateSourceTrigger=PropertyChanged}"
-                                          Style="{StaticResource MaterialDesignCheckBox}" />
+                                          Style="{StaticResource EDAI.Form.CheckBox}" />
                                 <Button Command="{Binding DataContext.SaveEnabledCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                         CommandParameter="{Binding}"
                                         Visibility="{Binding IsPendingSave, Converter={StaticResource BoolToVis}}"

@@ -22,6 +22,7 @@ public partial class MainWindow : Window
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
         await _viewModel.LoadSettingsAsync();
+        await _viewModel.LoadHistoryAsync();
     }
 
     protected override void OnClosing(CancelEventArgs e)

@@ -15,6 +15,7 @@ public sealed class EdaiDbContext : DbContext
     public DbSet<EventConfigurationEntity> EventConfigurations => Set<EventConfigurationEntity>();
     public DbSet<SessionHistoryEntity> SessionHistories => Set<SessionHistoryEntity>();
     public DbSet<ResponseLogEntity> ResponseLogs => Set<ResponseLogEntity>();
+    public DbSet<VoiceCacheEntity> VoiceCache => Set<VoiceCacheEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -47,6 +48,12 @@ public sealed class EdaiDbContext : DbContext
              .WithMany()
              .HasForeignKey(r => r.EventConfigurationId)
              .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<VoiceCacheEntity>(b =>
+        {
+            b.HasKey(v => v.Hash);
+            b.HasIndex(v => v.Phrase);
         });
     }
 

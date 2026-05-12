@@ -75,7 +75,7 @@
                         </DockPanel>
                         <TextBox materialDesign:HintAssist.Hint="Title *"
                                  Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 Style="{StaticResource EDAI.Form.TextBox}"
                                  Margin="0,0,0,16" />
 
                         <DockPanel Margin="0,0,0,4">
@@ -86,7 +86,7 @@
                         </DockPanel>
                         <TextBox materialDesign:HintAssist.Hint="Description (optional)"
                                  Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 Style="{StaticResource EDAI.Form.TextBox}"
                                  Margin="0,0,0,16" />
 
                         <DockPanel Margin="0,0,0,4">
@@ -105,7 +105,7 @@
                                       materialDesign:HintAssist.Hint="Category (optional)"
                                       ItemsSource="{Binding Categories}"
                                       SelectedItem="{Binding SelectedCategory}"
-                                      Style="{StaticResource MaterialDesignOutlinedComboBox}">
+                                      Style="{StaticResource EDAI.Form.ComboBox}">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Name}" />
@@ -123,7 +123,7 @@
                                                HelpText="When unchecked, this configuration is completely inactive — no AI calls are made even when matching events are received. You can also toggle this from the selection screen." />
                             <CheckBox Content="Enabled"
                                       IsChecked="{Binding IsEnabled}"
-                                      Style="{StaticResource MaterialDesignCheckBox}" />
+                                      Style="{StaticResource EDAI.Form.CheckBox}" />
                         </DockPanel>
 
                         <DockPanel Margin="0,0,0,4">
@@ -136,7 +136,7 @@
                                   ItemsSource="{Binding OpenAiModels}"
                                   Text="{Binding ModelOverride, UpdateSourceTrigger=PropertyChanged}"
                                   IsEditable="True"
-                                  Style="{StaticResource MaterialDesignOutlinedComboBox}" />
+                                  Style="{StaticResource EDAI.Form.ComboBox}" />
 
                     </StackPanel>
                 </ScrollViewer>
@@ -164,7 +164,7 @@
                                                        HelpText="When checked, EDAI sends the prompt to the AI and uses the response for display and announcements. When unchecked, the AI call is skipped — Processing tab settings are not used." />
                                     <CheckBox Content="Send to AI"
                                               IsChecked="{Binding SendToAi}"
-                                              Style="{StaticResource MaterialDesignCheckBox}" />
+                                              Style="{StaticResource EDAI.Form.CheckBox}" />
                                 </DockPanel>
                                 <DockPanel>
                                     <controls:HelpIcon DockPanel.Dock="Right"
@@ -172,10 +172,33 @@
                                     <CheckBox Content="Send Full Trigger Event"
                                               IsChecked="{Binding SendFullTriggerEvent}"
                                               IsEnabled="{Binding IsSendFullTriggerEventEnabled}"
-                                              Style="{StaticResource MaterialDesignCheckBox}" />
+                                              Style="{StaticResource EDAI.Form.CheckBox}" />
                                 </DockPanel>
                             </StackPanel>
                         </Border>
+
+                        <!-- Trigger Cooldown -->
+                        <DockPanel Margin="0,0,0,4">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="Minimum time that must pass before this event can fire again. Set to 0 to disable the cooldown. Use this to prevent repeated triggers when travelling between the same systems, or to limit AI token usage on noisy events." />
+                            <TextBlock Text="Trigger Cooldown (optional)" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                        </DockPanel>
+                        <Grid Margin="0,0,0,24">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="160" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                     materialDesign:HintAssist.Hint="0 = off"
+                                     Text="{Binding TriggerTimeoutValue, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource EDAI.Form.TextBox}" />
+                            <ComboBox Grid.Column="2"
+                                      ItemsSource="{Binding TriggerTimeoutUnits}"
+                                      SelectedItem="{Binding TriggerTimeoutUnit}"
+                                      Style="{StaticResource EDAI.Form.ComboBox}" />
+                        </Grid>
 
                         <!-- Triggering Events -->
                         <DockPanel Margin="0,0,0,8">
@@ -225,7 +248,7 @@
                             <TextBox Grid.Column="0"
                                      materialDesign:HintAssist.Hint="Add event type (e.g. FSDJump)"
                                      Text="{Binding NewTriggeringEvent, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+                                     Style="{StaticResource EDAI.Form.TextBox}" />
                             <Button Grid.Column="2"
                                     Content="Add"
                                     Command="{Binding AddTriggeringEventCommand}"
@@ -241,7 +264,7 @@
                         </DockPanel>
                         <TextBox materialDesign:HintAssist.Hint='e.g.  |trigger.SystemAllegiance| == "Independent"'
                                  Text="{Binding TriggerCondition, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 Style="{StaticResource EDAI.Form.TextBox}"
                                  FontFamily="Consolas" FontSize="12" />
 
                         <!-- Secondary Events -->
@@ -293,7 +316,7 @@
                                 <TextBox Grid.Column="0"
                                          materialDesign:HintAssist.Hint="Add secondary event type"
                                          Text="{Binding NewSecondaryEvent, UpdateSourceTrigger=PropertyChanged}"
-                                         Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+                                         Style="{StaticResource EDAI.Form.TextBox}" />
                                 <Button Grid.Column="2"
                                         Content="Add"
                                         Command="{Binding AddSecondaryEventCommand}"
@@ -308,7 +331,7 @@
                             </DockPanel>
                             <TextBox materialDesign:HintAssist.Hint="Milliseconds to wait (e.g. 1000)"
                                      Text="{Binding SecondaryWaitTimeMs, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+                                     Style="{StaticResource EDAI.Form.TextBox}" />
                         </StackPanel>
 
                     </StackPanel>
@@ -361,7 +384,7 @@
                             </DockPanel>
                             <TextBox materialDesign:HintAssist.Hint="Instruction sent to the AI after the persona..."
                                      Text="{Binding Prompt, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Style="{StaticResource EDAI.Form.TextBox}"
                                      AcceptsReturn="True" TextWrapping="Wrap"
                                      MinHeight="80" MaxHeight="200"
                                      VerticalScrollBarVisibility="Auto"
@@ -376,8 +399,8 @@
                                            Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
                             </DockPanel>
                             <TextBox materialDesign:HintAssist.Hint="Paste JSON schema here"
-                                     Text="{Binding ExpectedResultsSchema, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Text="{Binding ExpectedResultsSchema, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"
+                                     Style="{StaticResource EDAI.Form.TextBox}"
                                      AcceptsReturn="True" TextWrapping="Wrap"
                                      MinHeight="60" MaxHeight="120"
                                      VerticalScrollBarVisibility="Auto"
@@ -443,7 +466,7 @@
                                                            HelpText="When checked, the configuration title is shown as a heading above the response in the EDAI display panel." />
                                         <CheckBox Content="Show Title"
                                                   IsChecked="{Binding DisplayTitle}"
-                                                  Style="{StaticResource MaterialDesignCheckBox}" />
+                                                  Style="{StaticResource EDAI.Form.CheckBox}" />
                                     </DockPanel>
 
                                     <TextBlock Text="Display Lines" FontSize="12" Margin="0,0,0,4"
@@ -487,7 +510,7 @@
                                         <TextBox Grid.Column="0"
                                                  materialDesign:HintAssist.Hint="e.g. Arrived in |result.system_name|"
                                                  Text="{Binding NewDisplayField, UpdateSourceTrigger=PropertyChanged}"
-                                                 Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+                                                 Style="{StaticResource EDAI.Form.TextBox}" />
                                         <Button Grid.Column="2"
                                                 Content="Add"
                                                 Command="{Binding AddDisplayFieldCommand}"
@@ -499,14 +522,14 @@
                                                            HelpText='When checked, field names are shown before their values (e.g. "Threat Level: High"). When unchecked, only the value is shown.' />
                                         <CheckBox Content="Show Keys"
                                                   IsChecked="{Binding DisplayKeys}"
-                                                  Style="{StaticResource MaterialDesignCheckBox}" />
+                                                  Style="{StaticResource EDAI.Form.CheckBox}" />
                                     </DockPanel>
 
                                     <TextBlock Text="Display Condition (optional)" FontSize="12" Margin="0,0,0,4"
                                                Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
                                     <TextBox materialDesign:HintAssist.Hint='e.g.  |result.threat_level| == "High"'
                                              Text="{Binding DisplayCondition, UpdateSourceTrigger=PropertyChanged}"
-                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                             Style="{StaticResource EDAI.Form.TextBox}"
                                              FontFamily="Consolas" FontSize="11" />
                                 </StackPanel>
                             </Border>
@@ -531,7 +554,7 @@
                                                            HelpText="When checked, the configuration title is spoken aloud before the announcement text." />
                                         <CheckBox Content="Speak Title"
                                                   IsChecked="{Binding AnnounceTitle}"
-                                                  Style="{StaticResource MaterialDesignCheckBox}" />
+                                                  Style="{StaticResource EDAI.Form.CheckBox}" />
                                     </DockPanel>
 
                                     <TextBlock Text="Announce Lines" FontSize="12" Margin="0,0,0,4"
@@ -575,7 +598,7 @@
                                         <TextBox Grid.Column="0"
                                                  materialDesign:HintAssist.Hint="e.g. You have arrived in |result.system_name|"
                                                  Text="{Binding NewAnnounceField, UpdateSourceTrigger=PropertyChanged}"
-                                                 Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+                                                 Style="{StaticResource EDAI.Form.TextBox}" />
                                         <Button Grid.Column="2"
                                                 Content="Add"
                                                 Command="{Binding AddAnnounceFieldCommand}"
@@ -587,14 +610,14 @@
                                                            HelpText='When checked, field names are spoken before their values (e.g. "Threat Level: High"). When unchecked, only the value is spoken.' />
                                         <CheckBox Content="Speak Keys"
                                                   IsChecked="{Binding AnnounceKeys}"
-                                                  Style="{StaticResource MaterialDesignCheckBox}" />
+                                                  Style="{StaticResource EDAI.Form.CheckBox}" />
                                     </DockPanel>
 
                                     <TextBlock Text="Announce Condition (optional)" FontSize="12" Margin="0,0,0,4"
                                                Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
                                     <TextBox materialDesign:HintAssist.Hint='e.g.  |result.threat_level| == "High"'
                                              Text="{Binding AnnounceCondition, UpdateSourceTrigger=PropertyChanged}"
-                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                             Style="{StaticResource EDAI.Form.TextBox}"
                                              FontFamily="Consolas" FontSize="11" />
                                 </StackPanel>
                             </Border>
@@ -606,7 +629,7 @@
                                                HelpText="Show a Windows tray balloon notification when this configuration fires and the app is minimised. The global 'Tray Notifications Enabled' toggle in Settings must also be on." />
                             <CheckBox Content="Show Tray Notification"
                                       IsChecked="{Binding ShowTrayNotification}"
-                                      Style="{StaticResource MaterialDesignCheckBox}" />
+                                      Style="{StaticResource EDAI.Form.CheckBox}" />
                         </DockPanel>
 
                     </StackPanel>

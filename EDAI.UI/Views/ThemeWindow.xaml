@@ -46,7 +46,7 @@
                            Opacity="0.7" Margin="0,0,0,4"/>
                 <ComboBox ItemsSource="{Binding Elements}"
                           SelectedItem="{Binding SelectedElement}"
-                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                          Style="{StaticResource EDAI.Form.ComboBox}"
                           materialDesign:HintAssist.Hint="Select element"/>
             </StackPanel>
 
@@ -144,7 +144,7 @@
                                        Margin="0,4,0,8"/>
 
                             <ComboBox Margin="0,0,0,8"
-                                      Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                      Style="{StaticResource EDAI.Form.ComboBox}"
                                       materialDesign:HintAssist.Hint="Sample dropdown"
                                       IsEditable="False">
                                 <ComboBoxItem Content="Option One" IsSelected="True"/>
@@ -153,7 +153,7 @@
                             </ComboBox>
 
                             <TextBox Margin="0,0,0,8"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Style="{StaticResource EDAI.Form.TextBox}"
                                      materialDesign:HintAssist.Hint="Sample text input"
                                      Text="Sample text"/>
 

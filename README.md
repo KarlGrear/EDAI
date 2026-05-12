@@ -59,7 +59,7 @@ The first run automatically creates `EDAI.db` and `EDAI.log` next to the executa
 
 1. Launch the application — a splash screen appears while the database initialises.
 2. Click the **Settings** (cog ⚙) icon in the toolbar.
-3. Paste your **OpenAI API Key**. Choose a model (`gpt-4o` recommended).
+3. Paste your **OpenAI API Key**. Choose a model (`gpt-4o` or `gpt-5` recommended).
 4. Optionally set your TTS voice, font, and notification preferences.
 5. Click **Save**.
 6. To customise colors, click the **Palette** (🎨) icon in the toolbar.
@@ -96,7 +96,7 @@ Toolbar buttons (left to right):
 
 | Section | Options |
 |---|---|
-| **OpenAI** | API key (DPAPI-encrypted), model selection |
+| **OpenAI** | API key (DPAPI-encrypted), model selection (gpt-5, gpt-5-mini, gpt-5-nano, gpt-4o, gpt-4o-mini, gpt-4-turbo, gpt-4, gpt-3.5-turbo, or any custom model ID) |
 | **Text-to-Speech** | Voice selection with test button, global TTS on/off |
 | **Notifications** | Global tray notification override |
 | **Interface** | Always on Top, Show Splash Screen |
@@ -104,7 +104,7 @@ Toolbar buttons (left to right):
 
 ### Theme Window
 
-Opened via the Palette icon. Changes apply in real time so you can preview before saving.
+Opened via the Palette icon. Changes apply in real time so you can preview before saving. Select an element from the dropdown, adjust the color, then click **Save** to persist.
 
 | Element | Default | Notes |
 |---|---|---|
@@ -114,8 +114,11 @@ Opened via the Palette icon. Changes apply in real time so you can preview befor
 | Toolbar Background | Accent color | Independent from accent — the toolbar strip |
 | Toolbar Text | Auto-computed | Foreground for all toolbar text and icons |
 | Button Text | Theme default | Optional override for button foreground |
+| Event Background | Dark surface | Background of event/response cards in the panel |
+| Control Border | `#606060` | Border color of text boxes and combo boxes |
+| Control Hover | `#909090` | Hover/focus highlight on input controls |
 
-The color picker uses HSV (hue/saturation/value) with RGB numeric inputs and a hex field. An eyedropper tool lets you sample any color from any pixel on screen.
+The color picker uses HSV (hue/saturation/value) with RGB numeric inputs and a hex field. An eyedropper tool lets you sample any color from any pixel on screen. Click **Reset to Default** to remove the custom override for the selected element.
 
 ### Event Configurations Window
 
@@ -129,7 +132,16 @@ A filterable list of all event configurations with an inline **Enabled** toggle 
 
 ### Event Configuration Edit Window
 
-Full form for a single pipeline configuration. Every field has an inline **ⓘ help icon**. See [Event Configuration Fields](#event-configuration-fields) below for full details.
+A four-tab form for a single pipeline configuration. Every field has an inline **ⓘ help icon**. See [Event Configuration Fields](#event-configuration-fields) below for full details.
+
+| Tab | Contents |
+|---|---|
+| **General** | Title, Description, Category, Enabled, Model Override |
+| **Trigger** | Send to AI flag, Send Full Trigger Event flag, Triggering Events, Trigger Condition, Secondary Events, Secondary Wait (ms) |
+| **Processing** | Prompt, Expected Results Schema, Available Tokens hint panel |
+| **Action** | Display (title, fields, keys, condition) and Announce (title, fields, keys, condition) side-by-side, Show Tray Notification |
+
+The **Processing** tab is disabled (with an info banner) when **Send to AI** is unchecked on the Trigger tab.
 
 ### Test Window
 
@@ -178,10 +190,10 @@ Collected secondary events are included in the prompt as additional context JSON
 
 | Field | Description |
 |---|---|
-| **Send to AI** | When unchecked, the OpenAI call is skipped entirely. The template engine and conditions still run, so you can use EDAI purely for local display or speech based on journal data. |
+| **Send to AI** | When unchecked, the OpenAI call is skipped entirely. The template engine and conditions still run, so you can use EDAI purely for local display or speech based on journal data. When unchecked, the Processing tab is disabled in the edit window. |
 | **Prompt** | The instruction sent to OpenAI after the ship-AI system persona. Supports `|trigger.*|` and `|aux.*|` template tokens. |
-| **Expected Results Schema** | JSON template defining the exact shape of the AI response. This is embedded in the prompt and controls which `|result.*|` tokens become available. Example: `{"star_class": "", "threat_level": "", "recommendation": ""}` |
-| **Model Override** | Use a different OpenAI model for this configuration only. Leave blank to use the global default from Settings. |
+| **Expected Results Schema** | JSON template defining the exact shape of the AI response. This is embedded in the prompt and controls which `|result.*|` tokens become available. Example: `{"star_class": "", "threat_level": "", "recommendation": ""}` Must be valid JSON — the edit form validates it on save. |
+| **Model Override** | Use a different OpenAI model for this configuration only. Leave blank to use the global default from Settings. Available options: `gpt-5`, `gpt-5-mini`, `gpt-5-nano`, `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`, `gpt-4`, `gpt-3.5-turbo`, or any custom model ID. |
 | **Send Full Trigger Event** | Include the complete raw trigger event JSON in the prompt. Uncheck to reduce token usage when you only need specific fields via `|trigger.*|` tokens in the prompt. |
 
 ### Display (UI Response Panel)
@@ -421,6 +433,7 @@ EliteDangerousAI.sln
 │   ├── Controls/            HsvColorPicker, HelpIcon user controls
 │   ├── Converters/          XAML value converters
 │   ├── Services/            NavigationService, TrayIconService
+│   ├── Validators/          Data annotation validators (JsonValidator)
 │   ├── ViewModels/          MVVM ViewModels (CommunityToolkit.Mvvm source generators)
 │   └── Views/               XAML windows (Main, Settings, Theme, EventConfig, Test, …)
 └── EDAI.Data/               EF Core + SQLite data layer

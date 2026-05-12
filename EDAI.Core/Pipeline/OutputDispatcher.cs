@@ -77,6 +77,8 @@ public sealed class OutputDispatcher : IOutputDispatcher
                 DisplayedOutput = parsed.DisplayedOutput,
                 AnnouncedOutput = parsed.AnnouncedOutput,
                 Timestamp       = now,
+                PromptSent      = context.BuiltPrompt      ?? string.Empty,
+                RawAiResponse   = context.RawAiResponse    ?? string.Empty,
             });
         }
 

@@ -5,10 +5,6 @@ namespace EDAI.Core.Journal;
 
 public sealed class JournalAuxFileReader : IJournalAuxFileReader
 {
-    private static readonly string JournalDirectory = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-        "Saved Games", "Frontier Developments", "Elite Dangerous");
-
     private static readonly Dictionary<string, string> FileMap =
         new(StringComparer.OrdinalIgnoreCase)
         {
@@ -21,14 +17,16 @@ public sealed class JournalAuxFileReader : IJournalAuxFileReader
             ["status"]      = "Status.json",
         };
 
+    private readonly JournalPathOptions _journalOptions;
     private readonly ILogger<JournalAuxFileReader> _logger;
 
     public IReadOnlyList<string> KnownIdentifiers { get; } =
         FileMap.Keys.OrderBy(k => k).ToList();
 
-    public JournalAuxFileReader(ILogger<JournalAuxFileReader> logger)
+    public JournalAuxFileReader(JournalPathOptions journalOptions, ILogger<JournalAuxFileReader> logger)
     {
-        _logger = logger;
+        _journalOptions = journalOptions;
+        _logger         = logger;
     }
 
     public string? Read(string identifier)
@@ -36,7 +34,7 @@ public sealed class JournalAuxFileReader : IJournalAuxFileReader
         if (!FileMap.TryGetValue(identifier, out var fileName))
             return null;
 
-        var path = Path.Combine(JournalDirectory, fileName);
+        var path = Path.Combine(_journalOptions.Path, fileName);
         if (!File.Exists(path))
             return null;
 

@@ -108,6 +108,7 @@ public sealed class EventConfigurationRepository : IEventConfigurationRepository
         TriggerCondition = e.TriggerCondition,
         DisplayCondition = e.DisplayCondition,
         AnnounceCondition = e.AnnounceCondition,
+        TriggerTimeoutMs = e.TriggerTimeoutMs,
         CreatedAt = e.CreatedAt,
         UpdatedAt = e.UpdatedAt,
     };
@@ -143,5 +144,6 @@ public sealed class EventConfigurationRepository : IEventConfigurationRepository
         e.TriggerCondition = m.TriggerCondition;
         e.DisplayCondition = m.DisplayCondition;
         e.AnnounceCondition = m.AnnounceCondition;
+        e.TriggerTimeoutMs = m.TriggerTimeoutMs;
     }
 }

@@ -14,5 +14,8 @@ public partial class SettingsWindow : Window
         InitializeComponent();
         Loaded += async (_, _) => await _viewModel.LoadAsync();
         _viewModel.CloseRequested += (_, _) => Close();
+        _viewModel.ShowConfirmation = (message, title) =>
+            MessageBox.Show(this, message, title, MessageBoxButton.YesNo, MessageBoxImage.Warning)
+                == MessageBoxResult.Yes;
     }
 }

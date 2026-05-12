@@ -16,15 +16,12 @@ namespace EDAI.Core.Journal;
 /// </summary>
 public sealed class JournalWatcher : IJournalWatcher
 {
-    private static readonly string JournalDirectory = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-        "Saved Games", "Frontier Developments", "Elite Dangerous");
-
     // Bounded capacity 1 + DropWrite collapses rapid FSW events into at most one
     // pending read. The reader always reads to EOF, so no lines are missed.
     private readonly Channel<bool> _readChannel = Channel.CreateBounded<bool>(
         new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropWrite });
 
+    private readonly JournalPathOptions _journalOptions;
     private readonly IErrorService _errorService;
     private readonly ILogger<JournalWatcher> _logger;
 
@@ -44,18 +41,23 @@ public sealed class JournalWatcher : IJournalWatcher
 
     public event EventHandler<JournalLineReceivedEventArgs>? JournalLineReceived;
 
-    public JournalWatcher(IErrorService errorService, ILogger<JournalWatcher> logger)
+    public JournalWatcher(
+        JournalPathOptions journalOptions,
+        IErrorService errorService,
+        ILogger<JournalWatcher> logger)
     {
-        _errorService = errorService;
-        _logger = logger;
+        _journalOptions = journalOptions;
+        _errorService   = errorService;
+        _logger         = logger;
     }
 
     public Task StartAsync(CancellationToken cancellationToken = default)
     {
-        if (!Directory.Exists(JournalDirectory))
+        var journalDirectory = _journalOptions.Path;
+        if (!Directory.Exists(journalDirectory))
         {
             _errorService.ReportCritical(nameof(JournalWatcher),
-                $"Journal directory not found: {JournalDirectory}");
+                $"Journal directory not found: {journalDirectory}");
             return Task.CompletedTask;
         }
 
@@ -75,7 +77,7 @@ public sealed class JournalWatcher : IJournalWatcher
 
         _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        _watcher = new FileSystemWatcher(JournalDirectory, "Journal.*.log")
+        _watcher = new FileSystemWatcher(journalDirectory, "Journal.*.log")
         {
             NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName,
             EnableRaisingEvents = true,
@@ -237,9 +239,9 @@ public sealed class JournalWatcher : IJournalWatcher
     // Helpers
     // -------------------------------------------------------------------------
 
-    private static string? FindMostRecentJournalFile()
+    private string? FindMostRecentJournalFile()
     {
-        var dir = new DirectoryInfo(JournalDirectory);
+        var dir = new DirectoryInfo(_journalOptions.Path);
         return dir.GetFiles("Journal.*.log")
                   .OrderByDescending(f => f.LastWriteTimeUtc)
                   .FirstOrDefault()?.FullName;

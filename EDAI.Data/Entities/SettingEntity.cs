@@ -17,6 +17,14 @@ public sealed class SettingEntity
     public string? ToolbarBackground { get; set; }
     public string? ToolbarForeground { get; set; }
     public string? ButtonForeground { get; set; }
+    public string? ControlBackground { get; set; }
+    public string? ControlHoverBackground { get; set; }
+    public string? ControlBorderColor { get; set; }
+    public string TtsProvider { get; set; } = "SAPI";
+    public string? EdgeTtsLanguage { get; set; }
+    public string? EdgeTtsVoice { get; set; }
+    public double EdgeTtsRate { get; set; } = 1.0;
+    public double EdgeTtsPitch { get; set; } = 1.0;
     public string? FontFamily { get; set; }
     public double FontSize { get; set; } = 14.0;
     public double WindowWidth { get; set; } = 900;
@@ -24,4 +32,5 @@ public sealed class SettingEntity
     public double? WindowLeft { get; set; }
     public double? WindowTop { get; set; }
     public bool IsMaximized { get; set; }
+    public string? JournalPath { get; set; }
 }

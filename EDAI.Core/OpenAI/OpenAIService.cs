@@ -13,6 +13,11 @@ public sealed class OpenAIService : IOpenAIService
     private readonly IErrorService _errorService;
     private readonly ILogger<OpenAIService> _logger;
 
+    // Tracks whether we have already shown the critical "no API key" dialog this session.
+    // Reset to false whenever a call succeeds so that removing and re-adding a key triggers
+    // the prominent dialog again rather than silently showing a status-bar message.
+    private bool _missingKeyDialogShown;
+
     public OpenAIService(
         ISettingsRepository settings,
         IErrorService errorService,
@@ -29,7 +34,16 @@ public sealed class OpenAIService : IOpenAIService
 
         if (string.IsNullOrWhiteSpace(settingsModel.OpenAiApiKey))
         {
-            _errorService.ReportMinor(nameof(OpenAIService), "OpenAI API key is not configured.");
+            const string msg = "OpenAI API key is not configured. Open Settings to enter your API key.";
+            if (!_missingKeyDialogShown)
+            {
+                _missingKeyDialogShown = true;
+                _errorService.ReportCritical(nameof(OpenAIService), msg);
+            }
+            else
+            {
+                _errorService.ReportMinor(nameof(OpenAIService), msg);
+            }
             return string.Empty;
         }
 
@@ -68,6 +82,9 @@ public sealed class OpenAIService : IOpenAIService
                 "OpenAI Response | Model: {Model} | Elapsed: {ElapsedMs}ms\n--- Response ---\n{Response}",
                 model, (long)sw.Elapsed.TotalMilliseconds, text);
 
+            // A successful call means the key is now valid — reset so that if the user
+            // later clears the key they get the prominent dialog again.
+            _missingKeyDialogShown = false;
             return text;
         }
         catch (Exception ex)

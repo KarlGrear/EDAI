@@ -47,7 +47,7 @@
                                FontSize="12" Opacity="0.7" />
                     <ComboBox ItemsSource="{Binding Configs}"
                               SelectedItem="{Binding SelectedConfig}"
-                              Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                              Style="{StaticResource EDAI.Form.ComboBox}"
                               materialDesign:HintAssist.Hint="All Configurations">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
@@ -70,9 +70,9 @@
 
                 <!-- JSON input -->
                 <TextBox Grid.Row="2"
-                         Text="{Binding InputJson, UpdateSourceTrigger=PropertyChanged}"
+                         Text="{Binding InputJson, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"
                          materialDesign:HintAssist.Hint="Paste raw journal JSON here..."
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Style="{StaticResource EDAI.Form.TextBox}"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"
                          VerticalScrollBarVisibility="Auto"
@@ -139,9 +139,9 @@
                                    FontSize="12"
                                    Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
                                    Margin="0,0,0,4" />
-                        <TextBox Text="{Binding TemplateTriggerJson, UpdateSourceTrigger=PropertyChanged}"
+                        <TextBox Text="{Binding TemplateTriggerJson, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"
                                  materialDesign:HintAssist.Hint="Paste trigger event JSON here"
-                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 Style="{StaticResource EDAI.Form.TextBox}"
                                  AcceptsReturn="True"
                                  TextWrapping="Wrap"
                                  VerticalScrollBarVisibility="Auto"
@@ -157,9 +157,9 @@
                                    FontSize="12"
                                    Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
                                    Margin="0,0,0,4" />
-                        <TextBox Text="{Binding TemplateResultJson, UpdateSourceTrigger=PropertyChanged}"
+                        <TextBox Text="{Binding TemplateResultJson, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"
                                  materialDesign:HintAssist.Hint="Paste AI result JSON here"
-                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 Style="{StaticResource EDAI.Form.TextBox}"
                                  AcceptsReturn="True"
                                  TextWrapping="Wrap"
                                  VerticalScrollBarVisibility="Auto"
@@ -180,7 +180,7 @@
                          Height="70"
                          Text="{Binding TemplateInput, UpdateSourceTrigger=PropertyChanged}"
                          materialDesign:HintAssist.Hint="e.g. Arrived in |trigger.StarSystem| — threat: |result.threat_level| — fuel: |status.Fuel.FuelMain|"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Style="{StaticResource EDAI.Form.TextBox}"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"
                          VerticalScrollBarVisibility="Auto"
@@ -222,7 +222,7 @@
                     </TextBlock>
                     <TextBox Text="{Binding TemplateCondition, UpdateSourceTrigger=PropertyChanged}"
                              materialDesign:HintAssist.Hint='e.g.  |trigger.SystemAllegiance| == "Independent"'
-                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             Style="{StaticResource EDAI.Form.TextBox}"
                              FontFamily="Consolas"
                              FontSize="12" />
                 </DockPanel>
@@ -249,7 +249,7 @@
 
                 <!-- Output — fills remaining space -->
                 <TextBox Text="{Binding TemplateOutput, Mode=OneWay}"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Style="{StaticResource EDAI.Form.TextBox}"
                          IsReadOnly="True"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"

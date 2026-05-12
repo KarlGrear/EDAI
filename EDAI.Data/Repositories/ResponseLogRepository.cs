@@ -11,6 +11,30 @@ public sealed class ResponseLogRepository : IResponseLogRepository
 
     public ResponseLogRepository(IDbContextFactory<EdaiDbContext> factory) => _factory = factory;
 
+    public async Task<IReadOnlyList<ResponseLogModel>> GetRecentAsync(int count)
+    {
+        await using var context = await _factory.CreateDbContextAsync();
+        var entities = await context.ResponseLogs
+            .Include(r => r.EventConfiguration)
+            .OrderByDescending(r => r.Timestamp)
+            .Take(count)
+            .ToListAsync();
+        return entities.Select(e => new ResponseLogModel
+        {
+            Id                   = e.Id,
+            SessionHistoryId     = e.SessionHistoryId,
+            EventConfigurationId = e.EventConfigurationId,
+            ConfigTitle          = e.EventConfiguration?.Title,
+            Timestamp            = e.Timestamp,
+            TriggeringEventJson  = e.TriggeringEventJson,
+            SecondaryEventsJson  = e.SecondaryEventsJson,
+            PromptSent           = e.PromptSent,
+            RawAiResponse        = e.RawAiResponse,
+            DisplayedOutput      = e.DisplayedOutput,
+            AnnouncedOutput      = e.AnnouncedOutput,
+        }).ToList();
+    }
+
     public async Task<ResponseLogModel> AddAsync(ResponseLogModel model)
     {
         await using var context = await _factory.CreateDbContextAsync();

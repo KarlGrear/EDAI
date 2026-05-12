@@ -1,14 +1,16 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EDAI.Core.Interfaces;
 using EDAI.Core.Models;
 using EDAI.Core.Pipeline;
+using EDAI.UI.Validators;
 using Microsoft.Extensions.Logging;
 
 namespace EDAI.UI.ViewModels;
 
-public sealed partial class TestViewModel : ObservableObject
+public sealed partial class TestViewModel : ObservableValidator
 {
     private readonly IJournalParser _parser;
     private readonly IPipelineOrchestrator _orchestrator;
@@ -18,7 +20,9 @@ public sealed partial class TestViewModel : ObservableObject
     private readonly ILogger<TestViewModel> _logger;
 
     // ── Pipeline Test tab ────────────────────────────────────────────────────
-    [ObservableProperty] private string _inputJson = string.Empty;
+    [ObservableProperty]
+    [CustomValidation(typeof(JsonValidator), nameof(JsonValidator.ValidateJsonLines))]
+    private string _inputJson = string.Empty;
     [ObservableProperty] private bool _isRunning;
     [ObservableProperty] private EventConfigurationModel? _selectedConfig;
 
@@ -28,8 +32,13 @@ public sealed partial class TestViewModel : ObservableObject
     public ObservableCollection<EventConfigurationModel?> Configs { get; } = [];
 
     // ── Template Tester tab ──────────────────────────────────────────────────
-    [ObservableProperty] private string _templateTriggerJson    = string.Empty;
-    [ObservableProperty] private string _templateResultJson     = string.Empty;
+    [ObservableProperty]
+    [CustomValidation(typeof(JsonValidator), nameof(JsonValidator.ValidateSingleObject))]
+    private string _templateTriggerJson = string.Empty;
+
+    [ObservableProperty]
+    [CustomValidation(typeof(JsonValidator), nameof(JsonValidator.ValidateSingleObject))]
+    private string _templateResultJson = string.Empty;
     [ObservableProperty] private string _templateInput          = string.Empty;
     [ObservableProperty] private string _templateCondition      = string.Empty;
     [ObservableProperty] private string _templateOutput         = string.Empty;

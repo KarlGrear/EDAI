@@ -1,14 +1,16 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EDAI.Core.Interfaces;
 using EDAI.Core.Models;
 using EDAI.UI.Services;
+using EDAI.UI.Validators;
 
 namespace EDAI.UI.ViewModels;
 
-public sealed partial class EventConfigEditViewModel : ObservableObject
+public sealed partial class EventConfigEditViewModel : ObservableValidator
 {
     private readonly IEventConfigurationRepository _repo;
     private readonly ICategoryRepository _categoryRepo;
@@ -24,13 +26,16 @@ public sealed partial class EventConfigEditViewModel : ObservableObject
     ];
 
     // Core fields
-    [ObservableProperty] private string _title = string.Empty;
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+    private string _title = string.Empty;
     [ObservableProperty] private string _description = string.Empty;
     [ObservableProperty] private CategoryModel? _selectedCategory;
     [ObservableProperty] private bool _isEnabled;
     [ObservableProperty] private string _prompt = string.Empty;
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AvailableTokens))]
+    [CustomValidation(typeof(JsonValidator), nameof(JsonValidator.ValidateSingleObject))]
     private string _expectedResultsSchema = string.Empty;
     [ObservableProperty] private bool _displayTitle;
     [ObservableProperty] private bool _announceTitle;
@@ -54,6 +59,13 @@ public sealed partial class EventConfigEditViewModel : ObservableObject
     [ObservableProperty] private string _triggerCondition = string.Empty;
     [ObservableProperty] private string _displayCondition = string.Empty;
     [ObservableProperty] private string _announceCondition = string.Empty;
+
+    // Trigger cooldown — stored as ms in the model, presented as value + unit in the UI
+    [ObservableProperty] private int    _triggerTimeoutValue;
+    [ObservableProperty] private string _triggerTimeoutUnit = "Seconds";
+
+    public ObservableCollection<string> TriggerTimeoutUnits { get; } =
+        ["Milliseconds", "Seconds", "Minutes", "Hours"];
 
     public bool IsSecondaryEventsEnabled => SendToAi;
     public bool IsPromptEnabled => SendToAi;
@@ -103,6 +115,7 @@ public sealed partial class EventConfigEditViewModel : ObservableObject
         _repo = repo;
         _categoryRepo = categoryRepo;
         _navigation = navigation;
+        ErrorsChanged += (_, _) => SaveCommand.NotifyCanExecuteChanged();
     }
 
     public async Task LoadAsync(int? configId = null)
@@ -140,6 +153,7 @@ public sealed partial class EventConfigEditViewModel : ObservableObject
         TriggerCondition = m.TriggerCondition ?? string.Empty;
         DisplayCondition = m.DisplayCondition ?? string.Empty;
         AnnounceCondition = m.AnnounceCondition ?? string.Empty;
+        SetTimeoutFromMs(m.TriggerTimeoutMs);
 
         foreach (var e in m.TriggeringEvents) TriggeringEvents.Add(e);
         foreach (var e in m.SecondaryEvents) SecondaryEvents.Add(e);
@@ -196,12 +210,15 @@ public sealed partial class EventConfigEditViewModel : ObservableObject
             SelectedCategory = Categories.FirstOrDefault(c => c?.Id == previousId);
         });
 
-    [RelayCommand]
+    private bool CanSave() => !HasErrors && !string.IsNullOrWhiteSpace(Title);
+
+    [RelayCommand(CanExecute = nameof(CanSave))]
     private async Task Save()
     {
-        if (string.IsNullOrWhiteSpace(Title))
+        ValidateAllProperties();
+        if (HasErrors || string.IsNullOrWhiteSpace(Title))
         {
-            ValidationError = "Title is required.";
+            ValidationError = "Please fix the errors above before saving.";
             return;
         }
         ValidationError = null;
@@ -224,6 +241,24 @@ public sealed partial class EventConfigEditViewModel : ObservableObject
             CloseRequested?.Invoke(this, EventArgs.Empty);
         }
     }
+
+    private void SetTimeoutFromMs(long ms)
+    {
+        if (ms <= 0)                       { TriggerTimeoutValue = 0;              TriggerTimeoutUnit = "Seconds";      return; }
+        if (ms % 3_600_000 == 0)           { TriggerTimeoutValue = (int)(ms / 3_600_000); TriggerTimeoutUnit = "Hours";   return; }
+        if (ms % 60_000 == 0)              { TriggerTimeoutValue = (int)(ms / 60_000);    TriggerTimeoutUnit = "Minutes"; return; }
+        if (ms % 1_000 == 0)               { TriggerTimeoutValue = (int)(ms / 1_000);     TriggerTimeoutUnit = "Seconds"; return; }
+        TriggerTimeoutValue = (int)Math.Min(ms, int.MaxValue);
+        TriggerTimeoutUnit  = "Milliseconds";
+    }
+
+    private long ComputeTimeoutMs() => TriggerTimeoutUnit switch
+    {
+        "Hours"   => (long)TriggerTimeoutValue * 3_600_000,
+        "Minutes" => (long)TriggerTimeoutValue * 60_000,
+        "Seconds" => (long)TriggerTimeoutValue * 1_000,
+        _         => TriggerTimeoutValue,
+    };
 
     private EventConfigurationModel BuildModel() => new()
     {
@@ -250,6 +285,7 @@ public sealed partial class EventConfigEditViewModel : ObservableObject
         TriggerCondition = string.IsNullOrWhiteSpace(TriggerCondition) ? null : TriggerCondition,
         DisplayCondition = string.IsNullOrWhiteSpace(DisplayCondition) ? null : DisplayCondition,
         AnnounceCondition = string.IsNullOrWhiteSpace(AnnounceCondition) ? null : AnnounceCondition,
+        TriggerTimeoutMs = ComputeTimeoutMs(),
         CreatedAt = DateTime.UtcNow,
         UpdatedAt = DateTime.UtcNow,
     };

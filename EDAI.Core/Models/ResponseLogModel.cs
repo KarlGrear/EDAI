@@ -5,6 +5,7 @@ public sealed class ResponseLogModel
     public int Id { get; init; }
     public int? SessionHistoryId { get; init; }
     public int EventConfigurationId { get; init; }
+    public string? ConfigTitle { get; init; }
     public DateTime Timestamp { get; init; }
     public string TriggeringEventJson { get; init; } = string.Empty;
     public string? SecondaryEventsJson { get; init; }

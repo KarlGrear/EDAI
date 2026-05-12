@@ -63,12 +63,33 @@ public partial class App : Application
         var settingsRepo = _services.GetRequiredService<ISettingsRepository>();
         var settings = await settingsRepo.GetAsync();
 
+        // Resolve journal path before starting the watcher.
+        var journalPathOptions = _services.GetRequiredService<JournalPathOptions>();
+        journalPathOptions.Path = settings.JournalPath;
+
         ApplyAppearance(settings);
 
-        var tts = _services.GetRequiredService<ITtsService>();
-        tts.IsEnabled = settings.TtsEnabled;
-        if (!string.IsNullOrWhiteSpace(settings.TtsVoiceName))
-            tts.SetVoice(settings.TtsVoiceName);
+        var composite = _services.GetRequiredService<CompositeTtsService>();
+        composite.ActiveProvider = settings.TtsProvider;
+        composite.IsEnabled      = settings.TtsEnabled;
+
+        // Load Edge voices in background so startup isn't blocked by the network call.
+        _ = composite.LoadEdgeVoicesAsync();
+
+        // Apply saved voice / rate / pitch for the active engine.
+        if (composite.ActiveProvider == CompositeTtsService.ProviderEdge)
+        {
+            composite.ConfigureEdge(
+                settings.EdgeTtsVoice    ?? "en-US-AriaNeural",
+                settings.EdgeTtsLanguage ?? "en-US",
+                settings.EdgeTtsRate,
+                settings.EdgeTtsPitch);
+        }
+        else
+        {
+            if (!string.IsNullOrWhiteSpace(settings.TtsVoiceName))
+                composite.SetVoice(settings.TtsVoiceName);
+        }
 
         // Start tray icon
         _tray = new TrayIconService();
@@ -111,10 +132,29 @@ public partial class App : Application
         mainWindow.Width  = winW;
         mainWindow.Height = winH;
 
-        // Start centered on the primary monitor; override with saved position if present.
+        // Start centered on the primary monitor; override with saved position if it is
+        // still within the current virtual desktop bounds (guard against saved positions
+        // from a monitor that is no longer connected).
         CenterOnPrimaryMonitor(mainWindow);
-        if (settings.WindowLeft.HasValue) mainWindow.Left = settings.WindowLeft.Value;
-        if (settings.WindowTop.HasValue)  mainWindow.Top  = settings.WindowTop.Value;
+        if (settings.WindowLeft.HasValue && settings.WindowTop.HasValue)
+        {
+            double left = settings.WindowLeft.Value;
+            double top  = settings.WindowTop.Value;
+            double vLeft   = SystemParameters.VirtualScreenLeft;
+            double vTop    = SystemParameters.VirtualScreenTop;
+            double vRight  = vLeft + SystemParameters.VirtualScreenWidth;
+            double vBottom = vTop  + SystemParameters.VirtualScreenHeight;
+
+            // Require at least a 100×50 strip of the window to be on-screen.
+            bool onScreen = left + 100 <= vRight  && left + winW  >= vLeft
+                         && top  + 50  <= vBottom && top  + winH  >= vTop;
+
+            if (onScreen)
+            {
+                mainWindow.Left = left;
+                mainWindow.Top  = top;
+            }
+        }
 
         mainWindow.Topmost = settings.AlwaysOnTop;
         if (settings.IsMaximized) mainWindow.WindowState = WindowState.Maximized;
@@ -211,9 +251,11 @@ public partial class App : Application
         sc.AddSingleton<IEventConfigurationRepository, EventConfigurationRepository>();
         sc.AddSingleton<ISessionHistoryRepository, SessionHistoryRepository>();
         sc.AddSingleton<IResponseLogRepository, ResponseLogRepository>();
+        sc.AddSingleton<IVoiceCacheRepository, VoiceCacheRepository>();
 
         // Core services
         sc.AddSingleton<IErrorService, ErrorService>();
+        sc.AddSingleton<JournalPathOptions>();
         sc.AddSingleton<IJournalParser, JournalParser>();
         sc.AddSingleton<IJournalWatcher, JournalWatcher>();
         sc.AddSingleton<IJournalAuxFileReader, JournalAuxFileReader>();
@@ -221,7 +263,18 @@ public partial class App : Application
         sc.AddSingleton<IPromptBuilder, PromptBuilder>();
         sc.AddSingleton<IOpenAIService, OpenAIService>();
         sc.AddSingleton<IResponseParser, ResponseParser>();
-        sc.AddSingleton<ITtsService, TtsService>();
+        sc.AddSingleton<TtsService>();
+        sc.AddSingleton<EdgeTtsService>();
+        sc.AddSingleton<VoiceCacheService>(sp =>
+        {
+            var cacheDir = Path.Combine(AppContext.BaseDirectory, "voice_cache");
+            return new VoiceCacheService(
+                sp.GetRequiredService<IVoiceCacheRepository>(),
+                cacheDir,
+                sp.GetRequiredService<ILogger<VoiceCacheService>>());
+        });
+        sc.AddSingleton<CompositeTtsService>();
+        sc.AddSingleton<ITtsService>(sp => sp.GetRequiredService<CompositeTtsService>());
         sc.AddSingleton<IActionQueue, ActionQueue>();
         sc.AddSingleton<IOutputDispatcher, OutputDispatcher>();
         sc.AddSingleton<IPipelineOrchestrator, PipelineOrchestrator>();
@@ -364,6 +417,37 @@ public partial class App : Application
         else
             resources.Remove("EDAI.Brush.ButtonForeground");
 
+        // ControlBackground: overrides the card/surface background used by form controls
+        if (!string.IsNullOrEmpty(settings.ControlBackground))
+        {
+            var brush = new SolidColorBrush(ParseColor(settings.ControlBackground, Color.FromRgb(30, 30, 30)));
+            resources["EDAI.Brush.ControlBackground"] = brush;
+            resources["MaterialDesign.Brush.Card.Background"] = brush;
+        }
+        else
+        {
+            resources.Remove("EDAI.Brush.ControlBackground");
+            resources.Remove("MaterialDesign.Brush.Card.Background");
+        }
+
+        // ── Control Border (TextBox / ComboBox / CheckBox outline at rest) ─────
+        // When no custom color: fall back to MDIX's current inactive-border colour so
+        // the override brush stays visually neutral until the user picks a value.
+        var mdixBorderFallback = GetMdixBrushColor(resources, "MaterialDesign.Brush.TextBox.OutlineInactiveBorder",
+                                                    Color.FromRgb(97, 97, 97));
+        var controlBorderColor = !string.IsNullOrEmpty(settings.ControlBorderColor)
+            ? ParseColor(settings.ControlBorderColor, mdixBorderFallback)
+            : mdixBorderFallback;
+        resources["EDAI.Brush.ControlBorder"] = new SolidColorBrush(controlBorderColor);
+
+        // ── Control Hover (TextBox / ComboBox border on mouse-over) ─────────
+        var mdixHoverFallback = GetMdixBrushColor(resources, "MaterialDesign.Brush.TextBox.HoverBorder",
+                                                   Color.FromRgb(144, 144, 144));
+        var controlHoverColor = !string.IsNullOrEmpty(settings.ControlHoverBackground)
+            ? ParseColor(settings.ControlHoverBackground, mdixHoverFallback)
+            : mdixHoverFallback;
+        resources["EDAI.Brush.ControlHover"] = new SolidColorBrush(controlHoverColor);
+
         // ── Font ─────────────────────────────────────────────────────────────
         _currentFontFamily = string.IsNullOrWhiteSpace(settings.FontFamily) ? null : settings.FontFamily;
         _currentFontSize   = settings.FontSize > 0 ? settings.FontSize : 14.0;
@@ -378,6 +462,17 @@ public partial class App : Application
         if (_currentFontFamily != null)
             TextElement.SetFontFamily(w, new FontFamily(_currentFontFamily));
         TextElement.SetFontSize(w, _currentFontSize);
+    }
+
+    // Looks up a brush colour from MDIX's merged ResourceDictionaries, ignoring
+    // any override we may have placed directly in Application.Resources.
+    private static Color GetMdixBrushColor(ResourceDictionary resources, string key, Color fallback)
+    {
+        foreach (ResourceDictionary rd in resources.MergedDictionaries)
+        {
+            if (rd[key] is SolidColorBrush b) return b.Color;
+        }
+        return fallback;
     }
 
     private static Color ParseColor(string? hex, Color fallback)

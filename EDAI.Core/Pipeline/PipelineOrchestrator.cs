@@ -24,6 +24,7 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
     private readonly ILogger<PipelineOrchestrator> _logger;
 
     private readonly ConcurrentDictionary<int, ConfigPipeline> _pipelines = new();
+    private readonly ConcurrentDictionary<int, DateTime> _lastTriggerTimes = new();
     private readonly List<SecondaryEventCollector> _activeCollectors = [];
     private readonly object _collectorsLock = new();
 
@@ -69,6 +70,24 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
 
         foreach (var config in matches)
         {
+            if (config.TriggerTimeoutMs > 0)
+            {
+                var now = DateTime.UtcNow;
+                if (_lastTriggerTimes.TryGetValue(config.Id, out var lastFired))
+                {
+                    var elapsed = now - lastFired;
+                    if (elapsed.TotalMilliseconds < config.TriggerTimeoutMs)
+                    {
+                        var remaining = TimeSpan.FromMilliseconds(config.TriggerTimeoutMs - elapsed.TotalMilliseconds);
+                        _logger.LogInformation(
+                            "Trigger '{Event}' suppressed by cooldown for '{Config}' — {Remaining} remaining",
+                            journalEvent.EventType, config.Title, FormatTimeRemaining(remaining));
+                        continue;
+                    }
+                }
+                _lastTriggerTimes[config.Id] = now;
+            }
+
             var pipeline = _pipelines.GetOrAdd(config.Id, _ => new ConfigPipeline());
             pipeline.Enqueue(config, journalEvent);
             pipeline.EnsureRunning(RunAsync, cancellationToken);
@@ -155,5 +174,27 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
             _errorService.ReportMinor(nameof(PipelineOrchestrator),
                 $"Pipeline run failed for '{config.Title}': {ex.Message}", ex);
         }
+    }
+
+    private static string FormatTimeRemaining(TimeSpan remaining)
+    {
+        if (remaining.TotalHours >= 1)
+        {
+            var h = (int)remaining.TotalHours;
+            var m = remaining.Minutes;
+            return m > 0
+                ? $"{h} hour{(h == 1 ? "" : "s")} {m} minute{(m == 1 ? "" : "s")}"
+                : $"{h} hour{(h == 1 ? "" : "s")}";
+        }
+        if (remaining.TotalMinutes >= 1)
+        {
+            var m = (int)remaining.TotalMinutes;
+            var s = remaining.Seconds;
+            return s > 0
+                ? $"{m} minute{(m == 1 ? "" : "s")} {s} second{(s == 1 ? "" : "s")}"
+                : $"{m} minute{(m == 1 ? "" : "s")}";
+        }
+        var secs = (int)Math.Ceiling(remaining.TotalSeconds);
+        return secs > 0 ? $"{secs} second{(secs == 1 ? "" : "s")}" : "less than a second";
     }
 }
