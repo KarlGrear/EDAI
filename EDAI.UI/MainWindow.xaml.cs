@@ -36,7 +36,6 @@ public partial class MainWindow : Window
     {
         if (Application.Current is App { IsShuttingDown: true })
         {
-            // App is exiting via tray "Exit" — let the close proceed.
             base.OnClosing(e);
             return;
         }
@@ -45,9 +44,11 @@ public partial class MainWindow : Window
 
         if (shiftHeld || !_viewModel.MinimizeToTray)
         {
-            // Exit the app: allow the close, then trigger shutdown on the next dispatcher frame.
+            // Cancel the close so the window stays alive while we save state,
+            // then call BeginShutdown which will re-enter OnClosing with IsShuttingDown=true.
+            e.Cancel = true;
             base.OnClosing(e);
-            Dispatcher.BeginInvoke(() => (Application.Current as App)?.BeginShutdown());
+            _ = SaveThenExitAsync();
             return;
         }
 
@@ -57,11 +58,24 @@ public partial class MainWindow : Window
         HideToTray();
     }
 
+    private async Task SaveThenExitAsync()
+    {
+        CaptureWindowState(out var w, out var h, out var l, out var t, out var maximized);
+        await SaveWindowStateAsync(w, h, l, t, maximized, Topmost);
+        (Application.Current as App)?.BeginShutdown();
+    }
+
     private void HideToTray()
     {
-        // RestoreBounds holds the last normal (non-minimized, non-maximized) size/position.
-        bool wasMaximized = WindowState == WindowState.Maximized;
-        double w, h, l, t;
+        CaptureWindowState(out var w, out var h, out var l, out var t, out var wasMaximized);
+        _ = SaveWindowStateAsync(w, h, l, t, wasMaximized, Topmost);
+        Hide();
+    }
+
+    private void CaptureWindowState(
+        out double w, out double h, out double l, out double t, out bool wasMaximized)
+    {
+        wasMaximized = WindowState == WindowState.Maximized;
 
         if (WindowState == WindowState.Normal)
         {
@@ -70,19 +84,16 @@ public partial class MainWindow : Window
             l = Left;
             t = Top;
         }
-        else // Minimized or Maximized — use restore bounds
+        else // Minimized or Maximized — RestoreBounds holds last normal size/position
         {
             w = RestoreBounds.Width  > 0 ? RestoreBounds.Width  : ActualWidth;
             h = RestoreBounds.Height > 0 ? RestoreBounds.Height : ActualHeight;
             l = RestoreBounds.Left;
             t = RestoreBounds.Top;
         }
-
-        SaveWindowStateAsync(w, h, l, t, wasMaximized, Topmost);
-        Hide();
     }
 
-    private async void SaveWindowStateAsync(
+    private async Task SaveWindowStateAsync(
         double width, double height, double left, double top,
         bool isMaximized, bool alwaysOnTop)
     {

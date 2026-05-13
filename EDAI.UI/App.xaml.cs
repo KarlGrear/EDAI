@@ -155,8 +155,10 @@ public partial class App : Application
             double vBottom = vTop  + SystemParameters.VirtualScreenHeight;
 
             // Require at least a 100×50 strip of the window to be on-screen.
-            bool onScreen = left + 100 <= vRight  && left + winW  >= vLeft
-                         && top  + 50  <= vBottom && top  + winH  >= vTop;
+            // Compute the actual pixel overlap between the window rect and the virtual desktop.
+            double xVisible = Math.Min(left + winW, vRight)  - Math.Max(left, vLeft);
+            double yVisible = Math.Min(top  + winH, vBottom) - Math.Max(top,  vTop);
+            bool onScreen = xVisible >= 100 && yVisible >= 50;
 
             if (onScreen)
             {
