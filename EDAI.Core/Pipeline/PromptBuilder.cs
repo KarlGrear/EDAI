@@ -34,15 +34,10 @@ public sealed class PromptBuilder : IPromptBuilder
                 context.Config.Prompt,
                 context.TriggeringEvent.RawJson,
                 resultJson: null,
-                auxProvider: _auxReader.Read);
+                auxProvider: _auxReader.Read,
+                secondaryJson: context.SecondaryJson);
             sb.AppendLine(resolvedPrompt);
             sb.AppendLine();
-        }
-
-        if (context.Config.SendFullTriggerEvent)
-        {
-            sb.AppendLine("Triggering event:");
-            sb.AppendLine(context.TriggeringEvent.RawJson);
         }
 
         if (context.SecondaryEvents.Count > 0)

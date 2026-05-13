@@ -27,6 +27,7 @@ public sealed class ConfigExportPayload
     public bool IsEnabled { get; init; }
     public IList<string> TriggeringEvents { get; init; } = [];
     public string? TriggerCondition { get; init; }
+    public long TriggerTimeoutMs { get; init; }
 
     // Secondary collection
     public IList<string> SecondaryEvents { get; init; } = [];
@@ -34,7 +35,6 @@ public sealed class ConfigExportPayload
 
     // AI
     public bool SendToAi { get; init; } = true;
-    public bool SendFullTriggerEvent { get; init; } = true;
     public string Prompt { get; init; } = string.Empty;
     public string? ExpectedResultsSchema { get; init; }
     public string? ModelOverride { get; init; }
@@ -42,13 +42,11 @@ public sealed class ConfigExportPayload
     // Display
     public bool DisplayTitle { get; init; }
     public IList<string> DisplayFields { get; init; } = [];
-    public bool DisplayKeys { get; init; }
     public string? DisplayCondition { get; init; }
 
     // Announce
     public bool AnnounceTitle { get; init; }
     public IList<string> AnnounceFields { get; init; } = [];
-    public bool AnnounceKeys { get; init; }
     public string? AnnounceCondition { get; init; }
 
     public bool ShowTrayNotification { get; init; }

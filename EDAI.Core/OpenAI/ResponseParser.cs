@@ -17,7 +17,7 @@ public sealed class ResponseParser : IResponseParser
         _logger    = logger;
     }
 
-    public AiResponse Parse(string? rawJson, EventConfigurationModel config, string? triggerJson = null)
+    public AiResponse Parse(string? rawJson, EventConfigurationModel config, string? triggerJson = null, string? secondaryJson = null)
     {
         Dictionary<string, string> fields = new(StringComparer.OrdinalIgnoreCase);
 
@@ -43,18 +43,18 @@ public sealed class ResponseParser : IResponseParser
         var response = new AiResponse { Fields = fields };
 
         if (config.DisplayFields.Count > 0)
-            response.DisplayedOutput = ApplyTemplates(config.DisplayFields, triggerJson, rawJson);
+            response.DisplayedOutput = ApplyTemplates(config.DisplayFields, triggerJson, rawJson, secondaryJson);
 
         if (config.AnnounceFields.Count > 0)
-            response.AnnouncedOutput = ApplyTemplates(config.AnnounceFields, triggerJson, rawJson);
+            response.AnnouncedOutput = ApplyTemplates(config.AnnounceFields, triggerJson, rawJson, secondaryJson);
 
         return response;
     }
 
-    private string ApplyTemplates(IList<string> templates, string? triggerJson, string? resultJson)
+    private string ApplyTemplates(IList<string> templates, string? triggerJson, string? resultJson, string? secondaryJson)
     {
         var lines = templates
-            .Select(t => TemplateEngine.Apply(t, triggerJson, resultJson, _auxReader.Read))
+            .Select(t => TemplateEngine.Apply(t, triggerJson, resultJson, _auxReader.Read, secondaryJson))
             .Where(l => !string.IsNullOrWhiteSpace(l));
         return string.Join(Environment.NewLine, lines);
     }

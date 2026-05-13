@@ -67,6 +67,10 @@ public sealed class EventConfigurationRepository : IEventConfigurationRepository
         var entity = await context.EventConfigurations.FindAsync(id);
         if (entity is not null)
         {
+            var logs = await context.ResponseLogs
+                .Where(r => r.EventConfigurationId == id)
+                .ToListAsync();
+            context.ResponseLogs.RemoveRange(logs);
             context.EventConfigurations.Remove(entity);
             await context.SaveChangesAsync();
         }
@@ -98,12 +102,9 @@ public sealed class EventConfigurationRepository : IEventConfigurationRepository
         DisplayTitle = e.DisplayTitle,
         AnnounceTitle = e.AnnounceTitle,
         DisplayFields = e.DisplayFields,
-        DisplayKeys = e.DisplayKeys,
         AnnounceFields = e.AnnounceFields,
-        AnnounceKeys = e.AnnounceKeys,
         ShowTrayNotification = e.ShowTrayNotification,
         SendToAi = e.SendToAi,
-        SendFullTriggerEvent = e.SendFullTriggerEvent,
         ModelOverride = e.ModelOverride,
         TriggerCondition = e.TriggerCondition,
         DisplayCondition = e.DisplayCondition,
@@ -134,12 +135,9 @@ public sealed class EventConfigurationRepository : IEventConfigurationRepository
         e.DisplayTitle = m.DisplayTitle;
         e.AnnounceTitle = m.AnnounceTitle;
         e.DisplayFields = [.. m.DisplayFields];
-        e.DisplayKeys = m.DisplayKeys;
         e.AnnounceFields = [.. m.AnnounceFields];
-        e.AnnounceKeys = m.AnnounceKeys;
         e.ShowTrayNotification = m.ShowTrayNotification;
         e.SendToAi = m.SendToAi;
-        e.SendFullTriggerEvent = m.SendFullTriggerEvent;
         e.ModelOverride = m.ModelOverride;
         e.TriggerCondition = m.TriggerCondition;
         e.DisplayCondition = m.DisplayCondition;

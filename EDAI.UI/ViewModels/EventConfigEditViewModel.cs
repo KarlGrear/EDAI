@@ -39,8 +39,6 @@ public sealed partial class EventConfigEditViewModel : ObservableValidator
     private string _expectedResultsSchema = string.Empty;
     [ObservableProperty] private bool _displayTitle;
     [ObservableProperty] private bool _announceTitle;
-    [ObservableProperty] private bool _displayKeys;
-    [ObservableProperty] private bool _announceKeys;
     [ObservableProperty] private bool _showTrayNotification;
     [ObservableProperty] private int _secondaryWaitTimeMs = 1000;
 
@@ -49,11 +47,7 @@ public sealed partial class EventConfigEditViewModel : ObservableValidator
     [NotifyPropertyChangedFor(nameof(IsSecondaryEventsEnabled))]
     [NotifyPropertyChangedFor(nameof(IsPromptEnabled))]
     [NotifyPropertyChangedFor(nameof(IsSchemaEnabled))]
-    [NotifyPropertyChangedFor(nameof(IsSendFullTriggerEventEnabled))]
     private bool _sendToAi = true;
-
-    [ObservableProperty]
-    private bool _sendFullTriggerEvent = true;
 
     [ObservableProperty] private string? _modelOverride;
     [ObservableProperty] private string _triggerCondition = string.Empty;
@@ -70,7 +64,6 @@ public sealed partial class EventConfigEditViewModel : ObservableValidator
     public bool IsSecondaryEventsEnabled => SendToAi;
     public bool IsPromptEnabled => SendToAi;
     public bool IsSchemaEnabled => SendToAi;
-    public bool IsSendFullTriggerEventEnabled => SendToAi;
 
     // Multi-value collections
     public ObservableCollection<string> TriggeringEvents { get; } = [];
@@ -143,12 +136,9 @@ public sealed partial class EventConfigEditViewModel : ObservableValidator
         ExpectedResultsSchema = m.ExpectedResultsSchema ?? string.Empty;
         DisplayTitle = m.DisplayTitle;
         AnnounceTitle = m.AnnounceTitle;
-        DisplayKeys = m.DisplayKeys;
-        AnnounceKeys = m.AnnounceKeys;
         ShowTrayNotification = m.ShowTrayNotification;
         SecondaryWaitTimeMs = m.SecondaryWaitTimeMs;
         SendToAi = m.SendToAi;
-        SendFullTriggerEvent = m.SendFullTriggerEvent;
         ModelOverride = m.ModelOverride;
         TriggerCondition = m.TriggerCondition ?? string.Empty;
         DisplayCondition = m.DisplayCondition ?? string.Empty;
@@ -275,12 +265,9 @@ public sealed partial class EventConfigEditViewModel : ObservableValidator
         DisplayTitle = DisplayTitle,
         AnnounceTitle = AnnounceTitle,
         DisplayFields = DisplayFields.ToList(),
-        DisplayKeys = DisplayKeys,
         AnnounceFields = AnnounceFields.ToList(),
-        AnnounceKeys = AnnounceKeys,
         ShowTrayNotification = ShowTrayNotification,
         SendToAi = SendToAi,
-        SendFullTriggerEvent = SendFullTriggerEvent,
         ModelOverride = string.IsNullOrWhiteSpace(ModelOverride) ? null : ModelOverride,
         TriggerCondition = string.IsNullOrWhiteSpace(TriggerCondition) ? null : TriggerCondition,
         DisplayCondition = string.IsNullOrWhiteSpace(DisplayCondition) ? null : DisplayCondition,

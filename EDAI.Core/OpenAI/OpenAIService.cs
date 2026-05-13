@@ -51,9 +51,11 @@ public sealed class OpenAIService : IOpenAIService
         var client = new OpenAIClient(new ApiKeyCredential(settingsModel.OpenAiApiKey));
         var chatClient = client.GetChatClient(model);
 
+        var persona = settingsModel.SystemPersona;
+
         var messages = new List<ChatMessage>
         {
-            new SystemChatMessage(PromptBuilder.SystemPersona),
+            new SystemChatMessage(persona),
             new UserChatMessage(prompt)
         };
 
@@ -67,7 +69,7 @@ public sealed class OpenAIService : IOpenAIService
         _logger.LogInformation(
             "OpenAI Request | Model: {Model} | URL: https://api.openai.com/v1/chat/completions\n" +
             "--- System ---\n{System}\n--- User ---\n{Prompt}",
-            model, PromptBuilder.SystemPersona, prompt);
+            model, persona, prompt);
 
         try
         {

@@ -50,6 +50,7 @@ public sealed class SettingsRepository : ISettingsRepository
     {
         OpenAiApiKey             = DpapiHelper.Decrypt(e.OpenAiApiKeyEncrypted),
         OpenAiModel              = e.OpenAiModel,
+        SystemPersona            = e.SystemPersona ?? SettingsModel.DefaultSystemPersona,
         TtsVoiceName             = e.TtsVoiceName,
         TtsEnabled               = e.TtsEnabled,
         AlwaysOnTop              = e.AlwaysOnTop,
@@ -61,13 +62,14 @@ public sealed class SettingsRepository : ISettingsRepository
         CustomForegroundColor    = e.CustomForegroundColor,
         ToolbarBackground        = e.ToolbarBackground,
         ToolbarForeground        = e.ToolbarForeground,
+        ButtonBackground         = e.ButtonBackground,
         ButtonForeground         = e.ButtonForeground,
         ControlBackground        = e.ControlBackground,
         ControlHoverBackground   = e.ControlHoverBackground,
         ControlBorderColor       = e.ControlBorderColor,
         TtsProvider              = e.TtsProvider,
-        EdgeTtsLanguage          = e.EdgeTtsLanguage,
-        EdgeTtsVoice             = e.EdgeTtsVoice,
+        EdgeTtsLanguage          = e.EdgeTtsLanguage ?? "en-US",
+        EdgeTtsVoice             = e.EdgeTtsVoice    ?? "en-US-AvaNeural",
         EdgeTtsRate              = e.EdgeTtsRate,
         EdgeTtsPitch             = e.EdgeTtsPitch,
         FontFamily               = e.FontFamily,
@@ -78,12 +80,18 @@ public sealed class SettingsRepository : ISettingsRepository
         WindowTop                = e.WindowTop,
         IsMaximized              = e.IsMaximized,
         JournalPath              = e.JournalPath ?? SettingsModel.DefaultJournalPath,
+        MinimizeToTray           = e.MinimizeToTray,
+        TestWindowLeft           = e.TestWindowLeft,
+        TestWindowTop            = e.TestWindowTop,
+        TestWindowWidth          = e.TestWindowWidth > 0 ? e.TestWindowWidth  : 900,
+        TestWindowHeight         = e.TestWindowHeight > 0 ? e.TestWindowHeight : 680,
     };
 
     private static void ApplyToEntity(SettingsModel m, SettingEntity e)
     {
         e.OpenAiApiKeyEncrypted  = DpapiHelper.Encrypt(m.OpenAiApiKey);
         e.OpenAiModel            = m.OpenAiModel;
+        e.SystemPersona          = m.SystemPersona;
         e.TtsVoiceName           = m.TtsVoiceName;
         e.TtsEnabled             = m.TtsEnabled;
         e.AlwaysOnTop            = m.AlwaysOnTop;
@@ -95,6 +103,7 @@ public sealed class SettingsRepository : ISettingsRepository
         e.CustomForegroundColor  = m.CustomForegroundColor;
         e.ToolbarBackground      = m.ToolbarBackground;
         e.ToolbarForeground      = m.ToolbarForeground;
+        e.ButtonBackground       = m.ButtonBackground;
         e.ButtonForeground       = m.ButtonForeground;
         e.ControlBackground      = m.ControlBackground;
         e.ControlHoverBackground = m.ControlHoverBackground;
@@ -112,5 +121,10 @@ public sealed class SettingsRepository : ISettingsRepository
         e.WindowTop              = m.WindowTop;
         e.IsMaximized            = m.IsMaximized;
         e.JournalPath            = m.JournalPath;
+        e.MinimizeToTray         = m.MinimizeToTray;
+        e.TestWindowLeft         = m.TestWindowLeft;
+        e.TestWindowTop          = m.TestWindowTop;
+        e.TestWindowWidth        = m.TestWindowWidth;
+        e.TestWindowHeight       = m.TestWindowHeight;
     }
 }

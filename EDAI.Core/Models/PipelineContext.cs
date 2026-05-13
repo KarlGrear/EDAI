@@ -11,6 +11,12 @@ public sealed class PipelineContext
     public required EventConfigurationModel Config { get; init; }
     public required ParsedJournalEvent TriggeringEvent { get; init; }
     public IReadOnlyList<ParsedJournalEvent> SecondaryEvents { get; init; } = [];
+
+    /// <summary>Secondary events serialised as a JSON array for template token resolution.</summary>
+    public string? SecondaryJson => SecondaryEvents.Count == 0
+        ? null
+        : "[" + string.Join(",", SecondaryEvents.Select(e => e.RawJson)) + "]";
+
     public string? BuiltPrompt { get; set; }
     public string? RawAiResponse { get; set; }
     public AiResponse? ParsedResponse { get; set; }

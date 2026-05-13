@@ -32,6 +32,15 @@ public partial class App : Application
     private TrayIconService? _tray;
     private int? _currentSessionId;
 
+    // Set before calling Shutdown() so MainWindow.OnClosing knows not to cancel.
+    internal bool IsShuttingDown { get; private set; }
+
+    internal void BeginShutdown()
+    {
+        IsShuttingDown = true;
+        Shutdown();
+    }
+
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -80,7 +89,7 @@ public partial class App : Application
         if (composite.ActiveProvider == CompositeTtsService.ProviderEdge)
         {
             composite.ConfigureEdge(
-                settings.EdgeTtsVoice    ?? "en-US-AriaNeural",
+                settings.EdgeTtsVoice    ?? "en-US-AvaNeural",
                 settings.EdgeTtsLanguage ?? "en-US",
                 settings.EdgeTtsRate,
                 settings.EdgeTtsPitch);
@@ -107,6 +116,8 @@ public partial class App : Application
 
         var sessionRepo = _services.GetRequiredService<ISessionHistoryRepository>();
 
+        orchestrator.EventReceived += (_, e) => mainVm.NotifyJournalEvent(e.EventType);
+
         watcher.JournalLineReceived += async (_, args) =>
         {
             var parsed = parser.TryParse(args.Line.RawJson);
@@ -115,7 +126,6 @@ public partial class App : Application
                 if (parsed.EventType == "LoadGame")
                     await HandleLoadGameAsync(parsed.RawJson, watcher, sessionRepo);
 
-                mainVm.NotifyJournalEvent(parsed.EventType);
                 await orchestrator.ProcessAsync(parsed);
             }
         };
@@ -124,7 +134,6 @@ public partial class App : Application
 
         var mainWindow = _services.GetRequiredService<MainWindow>();
         MainWindow = mainWindow;
-        ShutdownMode = ShutdownMode.OnMainWindowClose;
 
         // Size — use saved values or sensible defaults so centering is accurate.
         double winW = settings.WindowWidth  > 0 ? settings.WindowWidth  : 900;
@@ -162,14 +171,20 @@ public partial class App : Application
         // Splash closes first, then main window appears.
         await splashMinimum;
         splash?.Close();
+        // Must be OnExplicitShutdown: closing the main window hides it to tray
+        // instead of exiting; only the tray "Exit" option calls BeginShutdown().
+        ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
         mainWindow.Show();
     }
 
     private async void OnResponseReceived(object? sender, AiResponseReceivedEventArgs e)
     {
         if (_tray == null) return;
+        if (!e.ShowTrayNotification) return;
 
         // MainWindow is a WPF object — must check visibility on the UI thread.
+        // IsVisible is false when the window has been hidden to the tray.
         bool isHidden = await Dispatcher.InvokeAsync(() => MainWindow?.IsVisible == false);
         if (!isHidden) return;
 
@@ -299,6 +314,8 @@ public partial class App : Application
         sc.AddTransient<ThemeViewModel>();
         sc.AddTransient<ThemeWindow>();
         sc.AddTransient<AboutWindow>();
+        sc.AddTransient<HistoryViewModel>();
+        sc.AddTransient<HistoryWindow>();
 
         return sc.BuildServiceProvider();
     }
@@ -411,11 +428,18 @@ public partial class App : Application
             ? new SolidColorBrush(ParseColor(settings.ToolbarForeground, Colors.White))
             : autoToolbarFg;
 
-        // ButtonForeground: custom color only — when absent, let MD handle it normally
-        if (!string.IsNullOrEmpty(settings.ButtonForeground))
-            resources["EDAI.Brush.ButtonForeground"] = new SolidColorBrush(ParseColor(settings.ButtonForeground, Colors.White));
-        else
-            resources.Remove("EDAI.Brush.ButtonForeground");
+        // ButtonBackground: custom color or fall back to primary accent (same as MDIX default)
+        resources["EDAI.Brush.ButtonBackground"] = !string.IsNullOrEmpty(settings.ButtonBackground)
+            ? new SolidColorBrush(ParseColor(settings.ButtonBackground, primaryColor))
+            : new SolidColorBrush(primaryColor);
+
+        // ButtonForeground: custom color or fall back to the auto-computed foreground for
+        // the primary color (the accessible text color MDIX uses on primary-background buttons)
+        var autoButtonFg = resources["MaterialDesign.Brush.Primary.Foreground"] as System.Windows.Media.Brush
+                           ?? new SolidColorBrush(Colors.White);
+        resources["EDAI.Brush.ButtonForeground"] = !string.IsNullOrEmpty(settings.ButtonForeground)
+            ? new SolidColorBrush(ParseColor(settings.ButtonForeground, Colors.White))
+            : autoButtonFg;
 
         // ControlBackground: overrides the card/surface background used by form controls
         if (!string.IsNullOrEmpty(settings.ControlBackground))

@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace EDAI.UI.Validators;
 
-internal static class JsonValidator
+public static class JsonValidator
 {
     /// <summary>
     /// Accepts empty/null or a well-formed JSON object.  Used for schema fields.
@@ -18,6 +18,27 @@ internal static class JsonValidator
             using var doc = JsonDocument.Parse(value);
             if (doc.RootElement.ValueKind != JsonValueKind.Object)
                 return new ValidationResult("Must be a JSON object { … }.");
+            return ValidationResult.Success;
+        }
+        catch (JsonException)
+        {
+            return new ValidationResult("Invalid JSON.");
+        }
+    }
+
+    /// <summary>
+    /// Accepts empty/null or a well-formed JSON array.  Used for secondary events input.
+    /// </summary>
+    public static ValidationResult? ValidateJsonArray(string? value, ValidationContext _)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return ValidationResult.Success;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(value);
+            if (doc.RootElement.ValueKind != JsonValueKind.Array)
+                return new ValidationResult("Must be a JSON array [ … ].");
             return ValidationResult.Success;
         }
         catch (JsonException)

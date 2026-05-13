@@ -1,5 +1,7 @@
 using System.Windows;
+using EDAI.UI.Services;
 using EDAI.UI.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EDAI.UI.Views;
 
@@ -17,5 +19,7 @@ public partial class SettingsWindow : Window
         _viewModel.ShowConfirmation = (message, title) =>
             MessageBox.Show(this, message, title, MessageBoxButton.YesNo, MessageBoxImage.Warning)
                 == MessageBoxResult.Yes;
+        _viewModel.OpenThemeRequested = () =>
+            ((App)Application.Current).Services.GetRequiredService<INavigationService>().ShowTheme();
     }
 }

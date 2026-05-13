@@ -43,7 +43,7 @@
                     </TextBlock>
                     <Button Content="Save"
                             Command="{Binding SaveCommand}"
-                            Style="{StaticResource MaterialDesignRaisedButton}"
+                            Style="{StaticResource EDAI.Button.Primary}"
                             IsDefault="True"
                             Margin="0,0,8,0" />
                     <Button Content="Cancel"
@@ -152,30 +152,6 @@
                 </TabItem.Header>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="24">
-
-                        <!-- Pipeline flags -->
-                        <Border Background="{DynamicResource MaterialDesign.Brush.DataGrid.RowHoverBackground}"
-                                CornerRadius="4"
-                                Padding="16,12"
-                                Margin="0,0,0,24">
-                            <StackPanel>
-                                <DockPanel Margin="0,0,0,10">
-                                    <controls:HelpIcon DockPanel.Dock="Right"
-                                                       HelpText="When checked, EDAI sends the prompt to the AI and uses the response for display and announcements. When unchecked, the AI call is skipped — Processing tab settings are not used." />
-                                    <CheckBox Content="Send to AI"
-                                              IsChecked="{Binding SendToAi}"
-                                              Style="{StaticResource EDAI.Form.CheckBox}" />
-                                </DockPanel>
-                                <DockPanel>
-                                    <controls:HelpIcon DockPanel.Dock="Right"
-                                                       HelpText="When checked, the full triggering event JSON is appended to the prompt. Uncheck when the prompt provides enough context via |trigger.*| tokens and you don't want to send the raw JSON." />
-                                    <CheckBox Content="Send Full Trigger Event"
-                                              IsChecked="{Binding SendFullTriggerEvent}"
-                                              IsEnabled="{Binding IsSendFullTriggerEventEnabled}"
-                                              Style="{StaticResource EDAI.Form.CheckBox}" />
-                                </DockPanel>
-                            </StackPanel>
-                        </Border>
 
                         <!-- Trigger Cooldown -->
                         <DockPanel Margin="0,0,0,4">
@@ -349,28 +325,14 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="24">
 
-                        <!-- Disabled notice -->
-                        <Border CornerRadius="4" Padding="12,10" Margin="0,0,0,16"
-                                Background="{DynamicResource MaterialDesign.Brush.DataGrid.RowHoverBackground}">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsPromptEnabled}" Value="False">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                            <StackPanel Orientation="Horizontal">
-                                <materialDesign:PackIcon Kind="InformationOutline"
-                                                         VerticalAlignment="Center"
-                                                         Margin="0,0,8,0"
-                                                         Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
-                                <TextBlock Text="Enable 'Send to AI' on the Trigger tab to configure processing."
-                                           VerticalAlignment="Center" FontSize="12" />
-                            </StackPanel>
-                        </Border>
+                        <!-- Send to AI toggle -->
+                        <DockPanel Margin="0,0,0,20">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="When checked, EDAI sends the prompt to the AI and uses the response for display and announcements. When unchecked, the AI call is skipped and the settings below are not used." />
+                            <CheckBox Content="Send to AI"
+                                      IsChecked="{Binding SendToAi}"
+                                      Style="{StaticResource EDAI.Form.CheckBox}" />
+                        </DockPanel>
 
                         <StackPanel IsEnabled="{Binding IsPromptEnabled}">
 
@@ -517,14 +479,6 @@
                                                 Style="{StaticResource MaterialDesignOutlinedButton}" />
                                     </Grid>
 
-                                    <DockPanel Margin="0,0,0,12">
-                                        <controls:HelpIcon DockPanel.Dock="Right"
-                                                           HelpText='When checked, field names are shown before their values (e.g. "Threat Level: High"). When unchecked, only the value is shown.' />
-                                        <CheckBox Content="Show Keys"
-                                                  IsChecked="{Binding DisplayKeys}"
-                                                  Style="{StaticResource EDAI.Form.CheckBox}" />
-                                    </DockPanel>
-
                                     <TextBlock Text="Display Condition (optional)" FontSize="12" Margin="0,0,0,4"
                                                Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
                                     <TextBox materialDesign:HintAssist.Hint='e.g.  |result.threat_level| == "High"'
@@ -604,14 +558,6 @@
                                                 Command="{Binding AddAnnounceFieldCommand}"
                                                 Style="{StaticResource MaterialDesignOutlinedButton}" />
                                     </Grid>
-
-                                    <DockPanel Margin="0,0,0,12">
-                                        <controls:HelpIcon DockPanel.Dock="Right"
-                                                           HelpText='When checked, field names are spoken before their values (e.g. "Threat Level: High"). When unchecked, only the value is spoken.' />
-                                        <CheckBox Content="Speak Keys"
-                                                  IsChecked="{Binding AnnounceKeys}"
-                                                  Style="{StaticResource EDAI.Form.CheckBox}" />
-                                    </DockPanel>
 
                                     <TextBlock Text="Announce Condition (optional)" FontSize="12" Margin="0,0,0,4"
                                                Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />

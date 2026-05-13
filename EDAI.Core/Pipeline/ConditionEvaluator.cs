@@ -22,11 +22,12 @@ public static class ConditionEvaluator
         string? condition,
         string? triggerJson,
         string? resultJson,
-        Func<string, string?>? auxProvider = null)
+        Func<string, string?>? auxProvider = null,
+        string? secondaryJson = null)
     {
         if (string.IsNullOrWhiteSpace(condition)) return true;
 
-        var resolved = TemplateEngine.Apply(condition, triggerJson, resultJson, auxProvider).Trim();
+        var resolved = TemplateEngine.Apply(condition, triggerJson, resultJson, auxProvider, secondaryJson).Trim();
 
         if (string.IsNullOrWhiteSpace(resolved)) return true;
 

@@ -37,6 +37,10 @@ public sealed partial class TestViewModel : ObservableValidator
     private string _templateTriggerJson = string.Empty;
 
     [ObservableProperty]
+    [CustomValidation(typeof(JsonValidator), nameof(JsonValidator.ValidateJsonLines))]
+    private string _templateSecondaryJson = string.Empty;
+
+    [ObservableProperty]
     [CustomValidation(typeof(JsonValidator), nameof(JsonValidator.ValidateSingleObject))]
     private string _templateResultJson = string.Empty;
     [ObservableProperty] private string _templateInput          = string.Empty;
@@ -56,15 +60,16 @@ public sealed partial class TestViewModel : ObservableValidator
         _logger.LogInformation("Template evaluation started. Input length={Len}", TemplateInput?.Length ?? 0);
         try
         {
-            var trigger = string.IsNullOrWhiteSpace(TemplateTriggerJson) ? null : TemplateTriggerJson;
-            var result  = string.IsNullOrWhiteSpace(TemplateResultJson)  ? null : TemplateResultJson;
+            var trigger   = string.IsNullOrWhiteSpace(TemplateTriggerJson)   ? null : TemplateTriggerJson;
+            var secondary = BuildSecondaryJson(TemplateSecondaryJson);
+            var result    = string.IsNullOrWhiteSpace(TemplateResultJson)    ? null : TemplateResultJson;
 
             if (!string.IsNullOrWhiteSpace(TemplateCondition))
             {
                 bool conditionPassed;
                 try
                 {
-                    conditionPassed = ConditionEvaluator.Evaluate(TemplateCondition, trigger, result, _auxReader.Read);
+                    conditionPassed = ConditionEvaluator.Evaluate(TemplateCondition, trigger, result, _auxReader.Read, secondary);
                     TemplateConditionResult = conditionPassed ? "True" : "False";
                 }
                 catch (Exception ex)
@@ -88,7 +93,7 @@ public sealed partial class TestViewModel : ObservableValidator
                 return;
             }
 
-            TemplateOutput = TemplateEngine.Apply(TemplateInput, trigger, result, _auxReader.Read);
+            TemplateOutput = TemplateEngine.Apply(TemplateInput, trigger, result, _auxReader.Read, secondary);
             TemplateStatus = $"Evaluated at {DateTime.Now:HH:mm:ss}";
             _logger.LogInformation("Template evaluation complete. Output={Output}", TemplateOutput);
         }
@@ -146,15 +151,37 @@ public sealed partial class TestViewModel : ObservableValidator
             var lines = InputJson
                 .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
+            bool triggerDispatched = false;
             foreach (var line in lines)
             {
                 var parsed = _parser.TryParse(line);
                 if (parsed == null) continue;
 
                 if (SelectedConfig != null)
-                    await _orchestrator.ProcessWithConfigAsync(parsed, SelectedConfig);
+                {
+                    if (!triggerDispatched)
+                    {
+                        // First event is the trigger — start the pipeline.
+                        await _orchestrator.ProcessWithConfigAsync(parsed, SelectedConfig);
+                        triggerDispatched = true;
+
+                        // The pipeline consumer runs on a thread-pool thread via Task.Run.
+                        // Yield briefly so it can reach the SecondaryEventCollector
+                        // registration point before we feed subsequent events to it.
+                        if (SelectedConfig.SecondaryEvents.Count > 0 && SelectedConfig.SecondaryWaitTimeMs > 0)
+                            await Task.Delay(50);
+                    }
+                    else
+                    {
+                        // Subsequent events: feed through normal pipeline so they reach
+                        // active secondary collectors without starting additional pipeline runs.
+                        await _orchestrator.ProcessAsync(parsed);
+                    }
+                }
                 else
+                {
                     await _orchestrator.ProcessAsync(parsed);
+                }
             }
         }
         finally
@@ -174,5 +201,14 @@ public sealed partial class TestViewModel : ObservableValidator
         };
         System.Windows.Application.Current.Dispatcher.InvokeAsync(
             () => TestResponses.Insert(0, item));
+    }
+
+    // Converts one-JSON-object-per-line input into a JSON array string, matching
+    // the format PipelineContext.SecondaryJson produces from live journal events.
+    private static string? BuildSecondaryJson(string? input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return null;
+        var lines = input.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        return lines.Length == 0 ? null : "[" + string.Join(",", lines) + "]";
     }
 }

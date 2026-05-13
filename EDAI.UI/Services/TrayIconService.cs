@@ -13,8 +13,8 @@ public sealed class TrayIconService : IDisposable
     {
         _notifyIcon = new NotifyIcon
         {
-            Text = "Elite Dangerous AI",
-            Icon = SystemIcons.Application,
+            Text    = "Elite Dangerous AI",
+            Icon    = LoadAppIcon(),
             Visible = false,
         };
 
@@ -45,7 +45,26 @@ public sealed class TrayIconService : IDisposable
         }
     }
 
-    private static void ExitApplication() => Application.Current.Shutdown();
+    private static void ExitApplication()
+    {
+        if (Application.Current is App app)
+            app.BeginShutdown();
+        else
+            Application.Current.Shutdown();
+    }
+
+    private static Icon LoadAppIcon()
+    {
+        try
+        {
+            var sri = System.Windows.Application.GetResourceStream(
+                new Uri("pack://application:,,,/Resources/EDAI.ico"));
+            if (sri != null)
+                return new Icon(sri.Stream);
+        }
+        catch { }
+        return SystemIcons.Application;
+    }
 
     public void Dispose()
     {

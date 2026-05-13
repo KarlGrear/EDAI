@@ -55,7 +55,7 @@
             <Button Grid.Column="1"
                     Content="Add"
                     Command="{Binding AddCategoryCommand}"
-                    Style="{StaticResource MaterialDesignRaisedButton}"
+                    Style="{StaticResource EDAI.Button.Primary}"
                     Margin="0,0,4,0" />
             <Button Grid.Column="2"
                     Content="Rename"

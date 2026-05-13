@@ -24,6 +24,7 @@ public sealed partial class ThemeViewModel : ObservableObject
         "App Text",
         "Toolbar Background",
         "Toolbar Text",
+        "Button Color",
         "Button Text",
         "Event Background",
         "Control Border",
@@ -114,6 +115,7 @@ public sealed partial class ThemeViewModel : ObservableObject
             "App Text"           => _preview.CustomForegroundColor,
             "Toolbar Background" => _preview.ToolbarBackground,
             "Toolbar Text"       => _preview.ToolbarForeground,
+            "Button Color"       => _preview.ButtonBackground,
             "Button Text"        => _preview.ButtonForeground,
             "Event Background"   => _preview.ControlBackground,
             "Control Border"     => _preview.ControlBorderColor,
@@ -131,6 +133,7 @@ public sealed partial class ThemeViewModel : ObservableObject
                 "App Text"           => "#FFFFFF",
                 "Toolbar Background" => _preview.PrimaryColor,
                 "Toolbar Text"       => "#FFFFFF",
+                "Button Color"       => _preview.PrimaryColor,
                 "Button Text"        => "#FFFFFF",
                 "Event Background"   => "#1E1E1E",
                 "Control Border"     => "#606060",
@@ -149,6 +152,7 @@ public sealed partial class ThemeViewModel : ObservableObject
         "App Text"           => s.CustomForegroundColor,
         "Toolbar Background" => s.ToolbarBackground,
         "Toolbar Text"       => s.ToolbarForeground,
+        "Button Color"       => s.ButtonBackground,
         "Button Text"        => s.ButtonForeground,
         "Event Background"   => s.ControlBackground,
         "Control Border"     => s.ControlBorderColor,
@@ -165,6 +169,7 @@ public sealed partial class ThemeViewModel : ObservableObject
             case "App Text":            s.CustomForegroundColor   = hex; break;
             case "Toolbar Background":  s.ToolbarBackground       = hex; break;
             case "Toolbar Text":        s.ToolbarForeground       = hex; break;
+            case "Button Color":        s.ButtonBackground        = hex; break;
             case "Button Text":         s.ButtonForeground        = hex; break;
             case "Event Background":    s.ControlBackground       = hex; break;
             case "Control Border":      s.ControlBorderColor      = hex; break;
@@ -187,6 +192,7 @@ public sealed partial class ThemeViewModel : ObservableObject
         CustomForegroundColor    = src.CustomForegroundColor,
         ToolbarBackground        = src.ToolbarBackground,
         ToolbarForeground        = src.ToolbarForeground,
+        ButtonBackground         = src.ButtonBackground,
         ButtonForeground         = src.ButtonForeground,
         ControlBackground        = src.ControlBackground,
         ControlHoverBackground   = src.ControlHoverBackground,

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EDAI.Core.Interfaces;
 using EDAI.Core.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace EDAI.UI.ViewModels;
 
@@ -40,9 +41,16 @@ public sealed partial class CategoryManagementViewModel : ObservableObject
         if (string.IsNullOrEmpty(name)) return;
 
         ErrorMessage = null;
-        var created = await _repo.AddAsync(name);
-        Categories.Add(created);
-        EditName = string.Empty;
+        try
+        {
+            var created = await _repo.AddAsync(name);
+            Categories.Add(created);
+            EditName = string.Empty;
+        }
+        catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("UNIQUE") == true)
+        {
+            ErrorMessage = $"A category named '{name}' already exists.";
+        }
     }
 
     [RelayCommand]
@@ -53,7 +61,15 @@ public sealed partial class CategoryManagementViewModel : ObservableObject
         if (string.IsNullOrEmpty(name)) return;
 
         ErrorMessage = null;
-        await _repo.RenameAsync(SelectedCategory.Id, name);
+        try
+        {
+            await _repo.RenameAsync(SelectedCategory.Id, name);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("UNIQUE") == true)
+        {
+            ErrorMessage = $"A category named '{name}' already exists.";
+            return;
+        }
 
         var updated = SelectedCategory with { Name = name };
         var idx = Categories.IndexOf(SelectedCategory);

@@ -6,8 +6,15 @@ public sealed class SettingsModel
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
         "Saved Games", "Frontier Developments", "Elite Dangerous");
 
+    public const string DefaultSystemPersona =
+        "You are EDAI, the onboard computer AI of an Elite Dangerous commander. " +
+        "You have access to ship telemetry, navigation data, and galactic knowledge. " +
+        "Respond only with a valid JSON object matching the schema provided. " +
+        "Do not include explanation, markdown, or any text outside the JSON object.";
+
     public string? OpenAiApiKey { get; set; }
     public string OpenAiModel { get; set; } = "gpt-4o";
+    public string SystemPersona { get; set; } = DefaultSystemPersona;
     public string? TtsVoiceName { get; set; }
     public bool TtsEnabled { get; set; } = true;
     public bool AlwaysOnTop { get; set; }
@@ -19,13 +26,14 @@ public sealed class SettingsModel
     public string? CustomForegroundColor { get; set; }
     public string? ToolbarBackground { get; set; }
     public string? ToolbarForeground { get; set; }
+    public string? ButtonBackground { get; set; }
     public string? ButtonForeground { get; set; }
     public string? ControlBackground { get; set; }
     public string? ControlHoverBackground { get; set; }
     public string? ControlBorderColor { get; set; }
-    public string TtsProvider { get; set; } = "SAPI";
-    public string? EdgeTtsLanguage { get; set; }
-    public string? EdgeTtsVoice { get; set; }
+    public string TtsProvider { get; set; } = "EdgeNeural";
+    public string? EdgeTtsLanguage { get; set; } = "en-US";
+    public string? EdgeTtsVoice { get; set; } = "en-US-AvaNeural";
     public double EdgeTtsRate { get; set; } = 1.0;
     public double EdgeTtsPitch { get; set; } = 1.0;
     public string? FontFamily { get; set; }
@@ -36,4 +44,9 @@ public sealed class SettingsModel
     public double? WindowTop { get; set; }
     public bool IsMaximized { get; set; }
     public string JournalPath { get; set; } = DefaultJournalPath;
+    public bool MinimizeToTray { get; set; } = true;
+    public double? TestWindowLeft { get; set; }
+    public double? TestWindowTop { get; set; }
+    public double TestWindowWidth { get; set; } = 900;
+    public double TestWindowHeight { get; set; } = 680;
 }

@@ -23,8 +23,11 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
     private readonly IJournalAuxFileReader _auxReader;
     private readonly ILogger<PipelineOrchestrator> _logger;
 
+    public event EventHandler<ParsedJournalEvent>? EventReceived;
+
     private readonly ConcurrentDictionary<int, ConfigPipeline> _pipelines = new();
-    private readonly ConcurrentDictionary<int, DateTime> _lastTriggerTimes = new();
+    private readonly Dictionary<int, DateTime> _lastTriggerTimes = [];
+    private readonly object _cooldownLock = new();
     private readonly List<SecondaryEventCollector> _activeCollectors = [];
     private readonly object _collectorsLock = new();
 
@@ -50,6 +53,8 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
 
     public async Task ProcessAsync(ParsedJournalEvent journalEvent, CancellationToken cancellationToken = default)
     {
+        EventReceived?.Invoke(this, journalEvent);
+
         // Feed incoming event to any active secondary collectors first.
         lock (_collectorsLock)
             foreach (var c in _activeCollectors)
@@ -70,23 +75,7 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
 
         foreach (var config in matches)
         {
-            if (config.TriggerTimeoutMs > 0)
-            {
-                var now = DateTime.UtcNow;
-                if (_lastTriggerTimes.TryGetValue(config.Id, out var lastFired))
-                {
-                    var elapsed = now - lastFired;
-                    if (elapsed.TotalMilliseconds < config.TriggerTimeoutMs)
-                    {
-                        var remaining = TimeSpan.FromMilliseconds(config.TriggerTimeoutMs - elapsed.TotalMilliseconds);
-                        _logger.LogInformation(
-                            "Trigger '{Event}' suppressed by cooldown for '{Config}' — {Remaining} remaining",
-                            journalEvent.EventType, config.Title, FormatTimeRemaining(remaining));
-                        continue;
-                    }
-                }
-                _lastTriggerTimes[config.Id] = now;
-            }
+            if (IsCooldownActive(journalEvent.EventType, config)) continue;
 
             var pipeline = _pipelines.GetOrAdd(config.Id, _ => new ConfigPipeline());
             pipeline.Enqueue(config, journalEvent);
@@ -99,9 +88,13 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
         EventConfigurationModel config,
         CancellationToken cancellationToken = default)
     {
+        EventReceived?.Invoke(this, journalEvent);
+
         lock (_collectorsLock)
             foreach (var c in _activeCollectors)
                 c.TryAccept(journalEvent);
+
+        if (IsCooldownActive(journalEvent.EventType, config)) return Task.CompletedTask;
 
         var pipeline = _pipelines.GetOrAdd(config.Id, _ => new ConfigPipeline());
         pipeline.Enqueue(config, journalEvent);
@@ -111,8 +104,8 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
 
     private async Task RunAsync(EventConfigurationModel config, ParsedJournalEvent triggeringEvent)
     {
-        _logger.LogInformation("Pipeline: {Config} triggered by {Event}",
-            config.Title, triggeringEvent.EventType);
+        _logger.LogInformation("Pipeline: {Config} triggered by {Event} (cooldown={CooldownMs}ms)",
+            config.Title, triggeringEvent.EventType, config.TriggerTimeoutMs);
         try
         {
             if (!ConditionEvaluator.Evaluate(config.TriggerCondition, triggeringEvent.RawJson, null, _auxReader.Read))
@@ -163,7 +156,8 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
             context.ParsedResponse = _responseParser.Parse(
                 context.RawAiResponse,
                 config,
-                context.TriggeringEvent.RawJson);
+                context.TriggeringEvent.RawJson,
+                context.SecondaryJson);
 
             await _outputDispatcher
                 .DispatchAsync(context, CancellationToken.None)
@@ -174,6 +168,30 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
             _errorService.ReportMinor(nameof(PipelineOrchestrator),
                 $"Pipeline run failed for '{config.Title}': {ex.Message}", ex);
         }
+    }
+
+    private bool IsCooldownActive(string eventType, EventConfigurationModel config)
+    {
+        if (config.TriggerTimeoutMs <= 0) return false;
+
+        lock (_cooldownLock)
+        {
+            var now = DateTime.UtcNow;
+            if (_lastTriggerTimes.TryGetValue(config.Id, out var lastFired))
+            {
+                var elapsed = now - lastFired;
+                if (elapsed.TotalMilliseconds < config.TriggerTimeoutMs)
+                {
+                    var remaining = TimeSpan.FromMilliseconds(config.TriggerTimeoutMs - elapsed.TotalMilliseconds);
+                    _logger.LogInformation(
+                        "Trigger '{Event}' suppressed by cooldown for '{Config}' — {Remaining} remaining",
+                        eventType, config.Title, FormatTimeRemaining(remaining));
+                    return true;
+                }
+            }
+            _lastTriggerTimes[config.Id] = now;
+        }
+        return false;
     }
 
     private static string FormatTimeRemaining(TimeSpan remaining)

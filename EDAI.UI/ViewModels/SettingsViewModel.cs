@@ -25,12 +25,16 @@ public sealed partial class SettingsViewModel : ObservableObject
     // Set by the view so the ViewModel can show a confirmation dialog without referencing WPF types.
     public Func<string, string, bool>? ShowConfirmation { get; set; }
 
+    // Set by the view to open the theme customization window.
+    public Action? OpenThemeRequested { get; set; }
+
     // Captured on LoadAsync so Cancel can restore the composite to its pre-edit state.
     private string _originalProvider = CompositeTtsService.ProviderSapi;
 
     // ── OpenAI ──────────────────────────────────────────────────────────────
-    [ObservableProperty] private string _openAiApiKey = string.Empty;
-    [ObservableProperty] private string _openAiModel  = "gpt-4o";
+    [ObservableProperty] private string _openAiApiKey    = string.Empty;
+    [ObservableProperty] private string _openAiModel     = "gpt-4o";
+    [ObservableProperty] private string _systemPersona   = SettingsModel.DefaultSystemPersona;
 
     // ── TTS engine ──────────────────────────────────────────────────────────
     [ObservableProperty]
@@ -65,6 +69,7 @@ public sealed partial class SettingsViewModel : ObservableObject
     // ── Interface ───────────────────────────────────────────────────────────
     [ObservableProperty] private bool   _alwaysOnTop;
     [ObservableProperty] private bool   _showSplashScreen = true;
+    [ObservableProperty] private bool   _minimizeToTray   = true;
 
     // ── Font ────────────────────────────────────────────────────────────────
     [ObservableProperty] private string? _selectedFontFamily;
@@ -128,10 +133,12 @@ public sealed partial class SettingsViewModel : ObservableObject
 
         OpenAiApiKey             = s.OpenAiApiKey ?? string.Empty;
         OpenAiModel              = s.OpenAiModel;
+        SystemPersona            = s.SystemPersona;
         TtsEnabled               = s.TtsEnabled;
         TrayNotificationsEnabled = s.TrayNotificationsEnabled;
         AlwaysOnTop              = s.AlwaysOnTop;
         ShowSplashScreen         = s.ShowSplashScreen;
+        MinimizeToTray           = s.MinimizeToTray;
         SelectedFontFamily       = s.FontFamily;
         FontSize                 = s.FontSize > 0 ? s.FontSize : 14.0;
         JournalPath              = s.JournalPath;
@@ -170,6 +177,17 @@ public sealed partial class SettingsViewModel : ObservableObject
         _tts.ActiveProvider = value == "Edge Neural Voices (Online)"
             ? CompositeTtsService.ProviderEdge
             : CompositeTtsService.ProviderSapi;
+
+        // Switching to SAPI: repopulate TtsVoices from the SAPI engine now that
+        // ActiveProvider is correct. Without this, TtsVoices still contains Edge
+        // voice names from the initial LoadAsync call.
+        if (IsSapiEngine)
+        {
+            TtsVoices.Clear();
+            foreach (var v in _tts.GetAvailableVoices())
+                TtsVoices.Add(v);
+            SelectedTtsVoice = TtsVoices.FirstOrDefault();
+        }
     }
 
     // When the user picks an Edge voice, pre-apply it so Test Voice speaks correctly.
@@ -193,10 +211,23 @@ public sealed partial class SettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void OpenTheme() => OpenThemeRequested?.Invoke();
+
+    [RelayCommand]
+    private void ResetSystemPersona() => SystemPersona = SettingsModel.DefaultSystemPersona;
+
+    [RelayCommand]
     private void TestVoice()
     {
         if (IsSapiEngine && !string.IsNullOrWhiteSpace(SelectedTtsVoice))
             _tts.SetVoice(SelectedTtsVoice);
+
+        if (IsEdgeEngine && SelectedEdgeVoice != null)
+            _tts.ConfigureEdge(
+                SelectedEdgeVoice.ShortName,
+                SelectedEdgeLanguage?.Locale ?? "en-US",
+                EdgeTtsRate,
+                EdgeTtsPitch);
 
         _tts.Enqueue("EDAI systems online, Commander.");
     }
@@ -208,10 +239,12 @@ public sealed partial class SettingsViewModel : ObservableObject
 
         settings.OpenAiApiKey             = OpenAiApiKey;
         settings.OpenAiModel              = OpenAiModel;
+        settings.SystemPersona            = SystemPersona;
         settings.TtsEnabled               = TtsEnabled;
         settings.TrayNotificationsEnabled = TrayNotificationsEnabled;
         settings.AlwaysOnTop              = AlwaysOnTop;
         settings.ShowSplashScreen         = ShowSplashScreen;
+        settings.MinimizeToTray           = MinimizeToTray;
         settings.FontFamily               = string.IsNullOrWhiteSpace(SelectedFontFamily) ? null : SelectedFontFamily;
         settings.FontSize                 = FontSize;
         settings.JournalPath              = JournalPath;

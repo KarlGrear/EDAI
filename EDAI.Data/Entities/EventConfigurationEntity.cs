@@ -16,12 +16,9 @@ public sealed class EventConfigurationEntity
     public bool DisplayTitle { get; set; }
     public bool AnnounceTitle { get; set; }
     public List<string> DisplayFields { get; set; } = [];
-    public bool DisplayKeys { get; set; }
     public List<string> AnnounceFields { get; set; } = [];
-    public bool AnnounceKeys { get; set; }
     public bool ShowTrayNotification { get; set; }
     public bool SendToAi { get; set; } = true;
-    public bool SendFullTriggerEvent { get; set; } = true;
     public string? ModelOverride { get; set; }
     public string? TriggerCondition { get; set; }
     public string? DisplayCondition { get; set; }

@@ -4,7 +4,7 @@
         xmlns:materialDesign="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
         xmlns:controls="clr-namespace:EDAI.UI.Controls"
         Title="Application Settings — Elite Dangerous AI"
-        Width="560" Height="760"
+        Width="560" Height="700"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         TextElement.Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"
@@ -18,290 +18,340 @@
                     HorizontalAlignment="Right" Margin="0,16,0,0">
             <Button Content="Save"
                     Command="{Binding SaveCommand}"
-                    Style="{StaticResource MaterialDesignRaisedButton}"
+                    Style="{StaticResource EDAI.Button.Primary}"
                     IsDefault="True" Margin="0,0,8,0" />
             <Button Content="Cancel"
                     Command="{Binding CancelCommand}"
                     Style="{StaticResource MaterialDesignOutlinedButton}" />
         </StackPanel>
 
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <StackPanel>
+        <TabControl>
 
-                <!-- ── OpenAI ─────────────────────────────────────────── -->
-                <DockPanel Margin="0,0,0,8">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Configure your OpenAI connection. An API key is required for EDAI to make AI calls. Calls are only made for events you explicitly configure — no background polling occurs." />
-                    <TextBlock Text="OpenAI"
-                               Style="{StaticResource MaterialDesignSubtitle1TextBlock}" />
-                </DockPanel>
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <!-- GENERAL                                                        -->
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <TabItem Header="General">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,0,0">
+                    <StackPanel Margin="0,14,0,0">
 
-                <!-- API Key -->
-                <DockPanel Margin="0,0,0,4">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Your secret OpenAI API key from platform.openai.com. Stored encrypted on this PC using Windows DPAPI — never written in plain text. Never shared or transmitted except in direct API calls to OpenAI." />
-                    <TextBlock Text="API Key" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
-                </DockPanel>
-                <TextBox materialDesign:HintAssist.Hint="Paste your OpenAI API key here"
-                         Text="{Binding OpenAiApiKey, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource EDAI.Form.TextBox}"
-                         Margin="0,0,0,12" />
+                        <!-- Minimize to System Tray -->
+                        <DockPanel Margin="0,0,0,12">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="When enabled, clicking the window close button (✕) minimises EDAI to the system tray instead of exiting. Right-click the tray icon to restore or exit. Hold Shift while clicking ✕ to always exit immediately regardless of this setting." />
+                            <CheckBox Content="Minimize to System Tray on Close"
+                                      IsChecked="{Binding MinimizeToTray}"
+                                      Style="{StaticResource EDAI.Form.CheckBox}" />
+                        </DockPanel>
 
-                <!-- Model -->
-                <DockPanel Margin="0,0,0,4">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="The OpenAI model used to process your events. GPT-4o gives the richest, most accurate responses. GPT-4o-mini is faster and cheaper. Type any valid model ID to use an unlisted model." />
-                    <TextBlock Text="Model" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
-                </DockPanel>
-                <ComboBox materialDesign:HintAssist.Hint="Model"
-                          ItemsSource="{Binding OpenAiModels}"
-                          SelectedItem="{Binding OpenAiModel}"
-                          IsEditable="True"
-                          Style="{StaticResource EDAI.Form.ComboBox}"
-                          Margin="0,0,0,24" />
+                        <!-- Always on top -->
+                        <DockPanel Margin="0,0,0,12">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="When enabled, the EDAI window floats in front of all other applications — useful while playing Elite Dangerous full-screen (windowed mode). Can also be toggled from the main window toolbar." />
+                            <CheckBox Content="Always on Top"
+                                      IsChecked="{Binding AlwaysOnTop}"
+                                      Style="{StaticResource EDAI.Form.CheckBox}" />
+                        </DockPanel>
 
-                <!-- ── Text-to-Speech ─────────────────────────────────── -->
-                <DockPanel Margin="0,0,0,8">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="EDAI supports two TTS engines: Windows Speech uses built-in SAPI voices (offline, instant). Edge Neural Voices uses Microsoft's online neural engine for more natural-sounding speech — requires an internet connection." />
-                    <TextBlock Text="Text-to-Speech"
-                               Style="{StaticResource MaterialDesignSubtitle1TextBlock}" />
-                </DockPanel>
+                        <!-- Show splash screen -->
+                        <DockPanel Margin="0,0,0,12">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="When enabled, the EDAI splash screen is shown for 5 seconds each time the application starts." />
+                            <CheckBox Content="Show Splash Screen on Launch"
+                                      IsChecked="{Binding ShowSplashScreen}"
+                                      Style="{StaticResource EDAI.Form.CheckBox}" />
+                        </DockPanel>
 
-                <!-- TTS Enabled -->
-                <DockPanel Margin="0,0,0,12">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Master on/off switch for all speech announcements. You can also toggle TTS from the main window toolbar (the speaker icon) without changing this setting." />
-                    <CheckBox Content="TTS Enabled"
-                              IsChecked="{Binding TtsEnabled}"
-                              Style="{StaticResource EDAI.Form.CheckBox}" />
-                </DockPanel>
+                        <!-- Tray notifications -->
+                        <DockPanel Margin="0,0,0,24">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="Global override for tray notifications. When disabled, no balloon notifications are shown regardless of per-configuration settings. When enabled, each configuration's own 'Show Tray Notification' checkbox controls whether it notifies." />
+                            <CheckBox Content="Tray Notifications Enabled"
+                                      IsChecked="{Binding TrayNotificationsEnabled}"
+                                      Style="{StaticResource EDAI.Form.CheckBox}" />
+                        </DockPanel>
 
-                <!-- Voice Engine -->
-                <DockPanel Margin="0,0,0,4">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Windows Speech (SAPI): uses voices installed on your PC — offline, no latency. Edge Neural Voices: uses Microsoft's cloud neural engine via the same backend as Edge Read Aloud — requires internet, ~300 ms startup per utterance, no account or API key needed." />
-                    <TextBlock Text="Voice Engine" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
-                </DockPanel>
-                <ComboBox materialDesign:HintAssist.Hint="Voice Engine"
-                          ItemsSource="{Binding TtsEngines}"
-                          SelectedItem="{Binding SelectedTtsEngine}"
-                          Style="{StaticResource EDAI.Form.ComboBox}"
-                          Margin="0,0,0,16" />
+                        <!-- Journal -->
+                        <DockPanel Margin="0,0,0,4">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="Full path to the folder containing Elite Dangerous Journal files (Journal.YYYY-MM-DDTHHMMSS.NN.log). Change this only if you have moved the game's save folder or are using a non-standard installation." />
+                            <TextBlock Text="Journal Folder" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <DockPanel Margin="0,0,0,8">
+                            <Button DockPanel.Dock="Right"
+                                    Content="Browse…"
+                                    Command="{Binding BrowseJournalPathCommand}"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Margin="8,0,0,0" />
+                            <TextBox materialDesign:HintAssist.Hint="Journal folder path"
+                                     Text="{Binding JournalPath, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource EDAI.Form.TextBox}" />
+                        </DockPanel>
 
-                <!-- ── SAPI panel (visible when Windows Speech selected) ─ -->
-                <StackPanel>
-                    <StackPanel.Style>
-                        <Style TargetType="StackPanel">
-                            <Setter Property="Visibility" Value="Visible" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsSapiEngine}" Value="False">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </StackPanel.Style>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
 
-                    <DockPanel Margin="0,0,0,4">
-                        <controls:HelpIcon DockPanel.Dock="Right"
-                                           HelpText="The Windows SAPI voice used for speech. Only voices installed on your system appear here. Additional voices can be installed via Windows Settings → Time &amp; Language → Speech. Click 'Test Voice' to hear a sample before saving." />
-                        <TextBlock Text="Voice" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
-                    </DockPanel>
-                    <DockPanel Margin="0,0,0,24">
-                        <Button DockPanel.Dock="Right"
-                                Content="Test Voice"
-                                Command="{Binding TestVoiceCommand}"
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <!-- AI                                                             -->
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <TabItem Header="AI">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,0,0">
+                    <StackPanel Margin="0,14,0,0">
+
+                        <!-- API Key -->
+                        <DockPanel Margin="0,0,0,4">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="Your secret OpenAI API key from platform.openai.com. Stored encrypted on this PC using Windows DPAPI — never written in plain text. Never shared or transmitted except in direct API calls to OpenAI." />
+                            <TextBlock Text="API Key" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <TextBox materialDesign:HintAssist.Hint="Paste your OpenAI API key here"
+                                 Text="{Binding OpenAiApiKey, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource EDAI.Form.TextBox}"
+                                 Margin="0,0,0,12" />
+
+                        <!-- Model -->
+                        <DockPanel Margin="0,0,0,4">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="The OpenAI model used to process your events. GPT-4o gives the richest, most accurate responses. GPT-4o-mini is faster and cheaper. Type any valid model ID to use an unlisted model." />
+                            <TextBlock Text="Model" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <ComboBox materialDesign:HintAssist.Hint="Model"
+                                  ItemsSource="{Binding OpenAiModels}"
+                                  SelectedItem="{Binding OpenAiModel}"
+                                  IsEditable="True"
+                                  Style="{StaticResource EDAI.Form.ComboBox}"
+                                  Margin="0,0,0,16" />
+
+                        <!-- System Persona -->
+                        <DockPanel Margin="0,0,0,4">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="The system message sent to the AI before every prompt. Sets the AI's persona and behaviour. Use 'Reset to Default' to restore the original EDAI persona." />
+                            <TextBlock Text="System Persona" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <TextBox Text="{Binding SystemPersona, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource EDAI.Form.TextBox}"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 MinHeight="80"
+                                 MaxHeight="200"
+                                 VerticalScrollBarVisibility="Auto"
+                                 materialDesign:HintAssist.Hint="System persona sent to the AI"
+                                 Margin="0,0,0,4" />
+                        <Button Content="Reset to Default"
+                                Command="{Binding ResetSystemPersonaCommand}"
                                 Style="{StaticResource MaterialDesignOutlinedButton}"
-                                Margin="8,0,0,0" />
-                        <ComboBox materialDesign:HintAssist.Hint="TTS Voice"
-                                  ItemsSource="{Binding TtsVoices}"
-                                  SelectedItem="{Binding SelectedTtsVoice}"
-                                  Style="{StaticResource EDAI.Form.ComboBox}" />
-                    </DockPanel>
-                </StackPanel>
+                                HorizontalAlignment="Left"
+                                Margin="0,0,0,8" />
 
-                <!-- ── Edge Neural panel (visible when Edge Neural selected) -->
-                <StackPanel>
-                    <StackPanel.Style>
-                        <Style TargetType="StackPanel">
-                            <Setter Property="Visibility" Value="Collapsed" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsEdgeEngine}" Value="True">
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <!-- TTS                                                            -->
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <TabItem Header="TTS">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,0,0">
+                    <StackPanel Margin="0,14,0,0">
+
+                        <!-- TTS Enabled -->
+                        <DockPanel Margin="0,0,0,12">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="Master on/off switch for all speech announcements. You can also toggle TTS from the main window toolbar (the speaker icon) without changing this setting." />
+                            <CheckBox Content="TTS Enabled"
+                                      IsChecked="{Binding TtsEnabled}"
+                                      Style="{StaticResource EDAI.Form.CheckBox}" />
+                        </DockPanel>
+
+                        <!-- Voice Engine -->
+                        <DockPanel Margin="0,0,0,4">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="Windows Speech (SAPI): uses voices installed on your PC — offline, no latency. Edge Neural Voices: uses Microsoft's cloud neural engine via the same backend as Edge Read Aloud — requires internet, ~300 ms startup per utterance, no account or API key needed." />
+                            <TextBlock Text="Voice Engine" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <ComboBox materialDesign:HintAssist.Hint="Voice Engine"
+                                  ItemsSource="{Binding TtsEngines}"
+                                  SelectedItem="{Binding SelectedTtsEngine}"
+                                  Style="{StaticResource EDAI.Form.ComboBox}"
+                                  Margin="0,0,0,16" />
+
+                        <!-- SAPI panel -->
+                        <StackPanel>
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
                                     <Setter Property="Visibility" Value="Visible" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </StackPanel.Style>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsSapiEngine}" Value="False">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
 
-                    <!-- Language -->
-                    <DockPanel Margin="0,0,0,4">
-                        <controls:HelpIcon DockPanel.Dock="Right"
-                                           HelpText="Filter the voice list to a specific English accent. English (United States) includes ~20 voices; English (United Kingdom) includes 5 voices." />
-                        <TextBlock Text="Language" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
-                    </DockPanel>
-                    <ComboBox materialDesign:HintAssist.Hint="Language"
-                              ItemsSource="{Binding EdgeLanguages}"
-                              SelectedItem="{Binding SelectedEdgeLanguage}"
-                              DisplayMemberPath="Display"
-                              Style="{StaticResource EDAI.Form.ComboBox}"
-                              Margin="0,0,0,12" />
+                            <DockPanel Margin="0,0,0,4">
+                                <controls:HelpIcon DockPanel.Dock="Right"
+                                                   HelpText="The Windows SAPI voice used for speech. Only voices installed on your system appear here. Additional voices can be installed via Windows Settings → Time &amp; Language → Speech. Click 'Test Voice' to hear a sample before saving." />
+                                <TextBlock Text="Voice" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
+                            </DockPanel>
+                            <DockPanel Margin="0,0,0,8">
+                                <Button DockPanel.Dock="Right"
+                                        Content="Test Voice"
+                                        Command="{Binding TestVoiceCommand}"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                                        Margin="8,0,0,0" />
+                                <ComboBox materialDesign:HintAssist.Hint="TTS Voice"
+                                          ItemsSource="{Binding TtsVoices}"
+                                          SelectedItem="{Binding SelectedTtsVoice}"
+                                          Style="{StaticResource EDAI.Form.ComboBox}" />
+                            </DockPanel>
+                        </StackPanel>
 
-                    <!-- Rate -->
-                    <DockPanel Margin="0,0,0,4">
-                        <controls:HelpIcon DockPanel.Dock="Right"
-                                           HelpText="Speech rate multiplier. 1.0 is normal speed. 0.5 is half speed, 2.0 is double speed. Encoded in the SSML prosody element sent to the Edge TTS API." />
-                        <TextBlock Text="Rate" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
-                    </DockPanel>
-                    <DockPanel Margin="0,0,0,12">
-                        <TextBlock DockPanel.Dock="Right" Width="40" TextAlignment="Right"
-                                   Text="{Binding EdgeTtsRate, StringFormat={}{0:F1}x}"
-                                   VerticalAlignment="Center" Margin="8,0,0,0" />
-                        <Slider Value="{Binding EdgeTtsRate}"
-                                Minimum="0.5" Maximum="2.0"
-                                TickFrequency="0.1" IsSnapToTickEnabled="True" />
-                    </DockPanel>
+                        <!-- Edge Neural panel -->
+                        <StackPanel>
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsEdgeEngine}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
 
-                    <!-- Pitch -->
-                    <DockPanel Margin="0,0,0,4">
-                        <controls:HelpIcon DockPanel.Dock="Right"
-                                           HelpText="Speech pitch multiplier. 1.0 is the voice's natural pitch. Values above 1.0 raise the pitch; values below 1.0 lower it. Encoded in the SSML prosody element sent to the Edge TTS API." />
-                        <TextBlock Text="Pitch" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
-                    </DockPanel>
-                    <DockPanel Margin="0,0,0,12">
-                        <TextBlock DockPanel.Dock="Right" Width="40" TextAlignment="Right"
-                                   Text="{Binding EdgeTtsPitch, StringFormat={}{0:F1}x}"
-                                   VerticalAlignment="Center" Margin="8,0,0,0" />
-                        <Slider Value="{Binding EdgeTtsPitch}"
-                                Minimum="0.5" Maximum="2.0"
-                                TickFrequency="0.1" IsSnapToTickEnabled="True" />
-                    </DockPanel>
+                            <!-- Language -->
+                            <DockPanel Margin="0,0,0,4">
+                                <controls:HelpIcon DockPanel.Dock="Right"
+                                                   HelpText="Filter the voice list to a specific English accent. English (United States) includes ~20 voices; English (United Kingdom) includes 5 voices." />
+                                <TextBlock Text="Language" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
+                            </DockPanel>
+                            <ComboBox materialDesign:HintAssist.Hint="Language"
+                                      ItemsSource="{Binding EdgeLanguages}"
+                                      SelectedItem="{Binding SelectedEdgeLanguage}"
+                                      DisplayMemberPath="Display"
+                                      Style="{StaticResource EDAI.Form.ComboBox}"
+                                      Margin="0,0,0,12" />
 
-                    <!-- Voice -->
-                    <DockPanel Margin="0,0,0,4">
-                        <controls:HelpIcon DockPanel.Dock="Right"
-                                           HelpText="The Edge Neural voice to use. Voices are listed as 'Name (Gender)'. Click 'Test Voice' to hear a sample. If no voices appear, check your internet connection — the list is fetched from Microsoft on startup." />
-                        <TextBlock Text="Voice" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
-                    </DockPanel>
-                    <DockPanel Margin="0,0,0,16">
-                        <Button DockPanel.Dock="Right"
-                                Content="Test Voice"
-                                Command="{Binding TestVoiceCommand}"
-                                Style="{StaticResource MaterialDesignOutlinedButton}"
-                                Margin="8,0,0,0" />
-                        <ComboBox materialDesign:HintAssist.Hint="Edge Neural Voice"
-                                  ItemsSource="{Binding FilteredEdgeVoices}"
-                                  SelectedItem="{Binding SelectedEdgeVoice}"
-                                  DisplayMemberPath="DisplayName"
-                                  Style="{StaticResource EDAI.Form.ComboBox}" />
-                    </DockPanel>
+                            <!-- Rate -->
+                            <DockPanel Margin="0,0,0,4">
+                                <controls:HelpIcon DockPanel.Dock="Right"
+                                                   HelpText="Speech rate multiplier. 1.0 is normal speed. 0.5 is half speed, 2.0 is double speed." />
+                                <TextBlock Text="Rate" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
+                            </DockPanel>
+                            <DockPanel Margin="0,0,0,12">
+                                <TextBlock DockPanel.Dock="Right" Width="40" TextAlignment="Right"
+                                           Text="{Binding EdgeTtsRate, StringFormat={}{0:F1}x}"
+                                           VerticalAlignment="Center" Margin="8,0,0,0" />
+                                <Slider Value="{Binding EdgeTtsRate}"
+                                        Minimum="0.5" Maximum="2.0"
+                                        TickFrequency="0.1" IsSnapToTickEnabled="True" />
+                            </DockPanel>
 
-                    <!-- Clear Voice Cache -->
-                    <DockPanel Margin="0,0,0,24">
-                        <controls:HelpIcon DockPanel.Dock="Right"
-                                           HelpText="Permanently deletes all cached Edge Neural audio files and their database records. Files and database entries are cleared independently — if you've manually deleted files or records, the other side is still cleaned up. Useful for freeing disk space or forcing a fresh API fetch." />
-                        <Button Content="Clear Voice Cache"
-                                Command="{Binding ClearVoiceCacheCommand}"
-                                Style="{StaticResource MaterialDesignOutlinedButton}"
-                                HorizontalAlignment="Left" />
-                    </DockPanel>
-                </StackPanel>
+                            <!-- Pitch -->
+                            <DockPanel Margin="0,0,0,4">
+                                <controls:HelpIcon DockPanel.Dock="Right"
+                                                   HelpText="Speech pitch multiplier. 1.0 is the voice's natural pitch. Values above 1.0 raise the pitch; values below 1.0 lower it." />
+                                <TextBlock Text="Pitch" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
+                            </DockPanel>
+                            <DockPanel Margin="0,0,0,12">
+                                <TextBlock DockPanel.Dock="Right" Width="40" TextAlignment="Right"
+                                           Text="{Binding EdgeTtsPitch, StringFormat={}{0:F1}x}"
+                                           VerticalAlignment="Center" Margin="8,0,0,0" />
+                                <Slider Value="{Binding EdgeTtsPitch}"
+                                        Minimum="0.5" Maximum="2.0"
+                                        TickFrequency="0.1" IsSnapToTickEnabled="True" />
+                            </DockPanel>
 
-                <!-- ── Notifications ─────────────────────────────────── -->
-                <DockPanel Margin="0,0,0,8">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Controls Windows tray balloon notifications. Notifications only appear when EDAI is minimised to the system tray. Each event configuration also has its own per-config notification toggle." />
-                    <TextBlock Text="Notifications"
-                               Style="{StaticResource MaterialDesignSubtitle1TextBlock}" />
-                </DockPanel>
+                            <!-- Voice -->
+                            <DockPanel Margin="0,0,0,4">
+                                <controls:HelpIcon DockPanel.Dock="Right"
+                                                   HelpText="The Edge Neural voice to use. Voices are listed as 'Name (Gender)'. Click 'Test Voice' to hear a sample." />
+                                <TextBlock Text="Voice" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
+                            </DockPanel>
+                            <DockPanel Margin="0,0,0,16">
+                                <Button DockPanel.Dock="Right"
+                                        Content="Test Voice"
+                                        Command="{Binding TestVoiceCommand}"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                                        Margin="8,0,0,0" />
+                                <ComboBox materialDesign:HintAssist.Hint="Edge Neural Voice"
+                                          ItemsSource="{Binding FilteredEdgeVoices}"
+                                          SelectedItem="{Binding SelectedEdgeVoice}"
+                                          DisplayMemberPath="DisplayName"
+                                          Style="{StaticResource EDAI.Form.ComboBox}" />
+                            </DockPanel>
 
-                <!-- Tray notifications -->
-                <DockPanel Margin="0,0,0,24">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Global override for tray notifications. When disabled, no balloon notifications are shown regardless of per-configuration settings. When enabled, each configuration's own 'Show Tray Notification' checkbox controls whether it notifies." />
-                    <CheckBox Content="Tray Notifications Enabled"
-                              IsChecked="{Binding TrayNotificationsEnabled}"
-                              Style="{StaticResource EDAI.Form.CheckBox}" />
-                </DockPanel>
+                            <!-- Clear Voice Cache -->
+                            <DockPanel Margin="0,0,0,8">
+                                <controls:HelpIcon DockPanel.Dock="Right"
+                                                   HelpText="Permanently deletes all cached Edge Neural audio files and their database records. Useful for freeing disk space or forcing a fresh API fetch." />
+                                <Button Content="Clear Voice Cache"
+                                        Command="{Binding ClearVoiceCacheCommand}"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                                        HorizontalAlignment="Left" />
+                            </DockPanel>
+                        </StackPanel>
 
-                <!-- ── Interface ─────────────────────────────────────── -->
-                <DockPanel Margin="0,0,0,8">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Visual preferences for the EDAI window. Settings take effect immediately and are saved when you click Save." />
-                    <TextBlock Text="Interface"
-                               Style="{StaticResource MaterialDesignSubtitle1TextBlock}" />
-                </DockPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
 
-                <!-- Always on top -->
-                <DockPanel Margin="0,0,0,12">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="When enabled, the EDAI window floats in front of all other applications — useful while playing Elite Dangerous full-screen (windowed mode). Can also be toggled from the main window toolbar." />
-                    <CheckBox Content="Always on Top"
-                              IsChecked="{Binding AlwaysOnTop}"
-                              Style="{StaticResource EDAI.Form.CheckBox}" />
-                </DockPanel>
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <!-- THEME                                                          -->
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <TabItem Header="Theme">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,0,0">
+                    <StackPanel Margin="0,14,0,0">
 
-                <!-- Show splash screen -->
-                <DockPanel Margin="0,0,0,12">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="When enabled, the EDAI splash screen is shown for 5 seconds each time the application starts." />
-                    <CheckBox Content="Show Splash Screen on Launch"
-                              IsChecked="{Binding ShowSplashScreen}"
-                              Style="{StaticResource EDAI.Form.CheckBox}" />
-                </DockPanel>
+                        <!-- Colors -->
+                        <TextBlock Text="Colors"
+                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                   Margin="0,0,0,8" />
+                        <TextBlock TextWrapping="Wrap" Opacity="0.7" Margin="0,0,0,16"
+                                   Text="Customize the base theme, accent color, toolbar, buttons, and form control colors. Changes take effect immediately." />
+                        <Button Content="Change Colors…"
+                                Command="{Binding OpenThemeCommand}"
+                                Style="{StaticResource EDAI.Button.Primary}"
+                                HorizontalAlignment="Left"
+                                Margin="0,0,0,24" />
 
-                <!-- Font Family -->
-                <DockPanel Margin="0,0,0,4">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="The font used throughout the interface. Leave blank for the default Material Design font." />
-                    <TextBlock Text="Font Family" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
-                </DockPanel>
-                <ComboBox materialDesign:HintAssist.Hint="Font (blank = default)"
-                          ItemsSource="{Binding FontFamilies}"
-                          SelectedItem="{Binding SelectedFontFamily}"
-                          IsEditable="True"
-                          Style="{StaticResource EDAI.Form.ComboBox}"
-                          Margin="0,0,0,12" />
+                        <Separator Margin="0,0,0,20" />
 
-                <!-- Font Size -->
-                <DockPanel Margin="0,0,0,4">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Base font size in points. Default is 14. Scales all text in the interface." />
-                    <TextBlock Text="Font Size" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
-                </DockPanel>
-                <DockPanel Margin="0,0,0,24">
-                    <TextBlock DockPanel.Dock="Right" Width="40" TextAlignment="Right"
-                               Text="{Binding FontSize, StringFormat={}{0:F0} pt}"
-                               VerticalAlignment="Center" Margin="8,0,0,0" />
-                    <Slider Value="{Binding FontSize}"
-                            Minimum="8" Maximum="32"
-                            TickFrequency="1" IsSnapToTickEnabled="True" />
-                </DockPanel>
+                        <!-- Font Family -->
+                        <TextBlock Text="Font"
+                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                   Margin="0,0,0,12" />
+                        <DockPanel Margin="0,0,0,4">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="The font used throughout the interface. Leave blank for the default Material Design font." />
+                            <TextBlock Text="Font Family" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <ComboBox materialDesign:HintAssist.Hint="Font (blank = default)"
+                                  ItemsSource="{Binding FontFamilies}"
+                                  SelectedItem="{Binding SelectedFontFamily}"
+                                  IsEditable="True"
+                                  Style="{StaticResource EDAI.Form.ComboBox}"
+                                  Margin="0,0,0,12" />
 
-                <!-- ── Journal Path ──────────────────────────────────── -->
-                <DockPanel Margin="0,0,0,8">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="The folder where Elite Dangerous writes its journal files. EDAI monitors this folder for new events. Defaults to the standard Elite Dangerous save-game location for your Windows user account." />
-                    <TextBlock Text="Journal"
-                               Style="{StaticResource MaterialDesignSubtitle1TextBlock}" />
-                </DockPanel>
+                        <!-- Font Size -->
+                        <DockPanel Margin="0,0,0,4">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="Base font size in points. Default is 14. Scales all text in the interface." />
+                            <TextBlock Text="Font Size" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <DockPanel Margin="0,0,0,8">
+                            <TextBlock DockPanel.Dock="Right" Width="40" TextAlignment="Right"
+                                       Text="{Binding FontSize, StringFormat={}{0:F0} pt}"
+                                       VerticalAlignment="Center" Margin="8,0,0,0" />
+                            <Slider Value="{Binding FontSize}"
+                                    Minimum="8" Maximum="32"
+                                    TickFrequency="1" IsSnapToTickEnabled="True" />
+                        </DockPanel>
 
-                <DockPanel Margin="0,0,0,4">
-                    <controls:HelpIcon DockPanel.Dock="Right"
-                                       HelpText="Full path to the folder containing Elite Dangerous Journal files (Journal.YYYY-MM-DDTHHMMSS.NN.log). Change this only if you have moved the game's save folder or are using a non-standard installation." />
-                    <TextBlock Text="Journal Folder" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
-                </DockPanel>
-                <DockPanel Margin="0,0,0,24">
-                    <Button DockPanel.Dock="Right"
-                            Content="Browse…"
-                            Command="{Binding BrowseJournalPathCommand}"
-                            Style="{StaticResource MaterialDesignOutlinedButton}"
-                            Margin="8,0,0,0" />
-                    <TextBox materialDesign:HintAssist.Hint="Journal folder path"
-                             Text="{Binding JournalPath, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource EDAI.Form.TextBox}" />
-                </DockPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
 
-            </StackPanel>
-        </ScrollViewer>
+        </TabControl>
     </DockPanel>
 </Window>

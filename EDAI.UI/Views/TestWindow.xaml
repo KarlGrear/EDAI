@@ -31,7 +31,7 @@
                     <Button DockPanel.Dock="Right"
                             Content="Run Test"
                             Command="{Binding RunTestCommand}"
-                            Style="{StaticResource MaterialDesignRaisedButton}"
+                            Style="{StaticResource EDAI.Button.Primary}"
                             IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}" />
                     <TextBlock Text="Paste journal JSON lines (one per line):"
                                Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
@@ -125,9 +125,11 @@
                            Opacity="0.8"
                            Margin="0,0,0,8" />
 
-                <!-- Side-by-side JSON inputs (fixed height) -->
+                <!-- Three-column JSON inputs (fixed height) -->
                 <Grid DockPanel.Dock="Top" Height="180" Margin="0,0,0,0">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="8" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="8" />
                         <ColumnDefinition Width="*" />
@@ -152,6 +154,24 @@
                     <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" />
 
                     <DockPanel Grid.Column="2">
+                        <TextBlock DockPanel.Dock="Top"
+                                   Text="Secondary JSON (array)"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                   Margin="0,0,0,4" />
+                        <TextBox Text="{Binding TemplateSecondaryJson, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"
+                                 materialDesign:HintAssist.Hint="Paste journal lines (one per line)"
+                                 Style="{StaticResource EDAI.Form.TextBox}"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 FontFamily="Consolas"
+                                 FontSize="12" />
+                    </DockPanel>
+
+                    <GridSplitter Grid.Column="3" Width="8" HorizontalAlignment="Stretch" />
+
+                    <DockPanel Grid.Column="4">
                         <TextBlock DockPanel.Dock="Top"
                                    Text="Result JSON"
                                    FontSize="12"
@@ -179,7 +199,7 @@
                 <TextBox DockPanel.Dock="Top"
                          Height="70"
                          Text="{Binding TemplateInput, UpdateSourceTrigger=PropertyChanged}"
-                         materialDesign:HintAssist.Hint="e.g. Arrived in |trigger.StarSystem| — threat: |result.threat_level| — fuel: |status.Fuel.FuelMain|"
+                         materialDesign:HintAssist.Hint="e.g. |trigger.StarSystem| — threat: |result.threat_level| — secondary: |secondary[0].event| — count: |count(secondary)|"
                          Style="{StaticResource EDAI.Form.TextBox}"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"
@@ -232,7 +252,7 @@
                     <Button DockPanel.Dock="Left"
                             Content="Run Test"
                             Command="{Binding EvaluateTemplateCommand}"
-                            Style="{StaticResource MaterialDesignRaisedButton}"
+                            Style="{StaticResource EDAI.Button.Primary}"
                             Margin="0,0,12,0" />
                     <TextBlock Text="{Binding TemplateStatus}"
                                FontSize="11"

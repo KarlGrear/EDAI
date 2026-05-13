@@ -60,31 +60,33 @@ public sealed class OutputDispatcher : IOutputDispatcher
         var parsed = context.ParsedResponse;
         if (parsed == null) return;
 
-        var now         = DateTime.UtcNow;
-        var triggerJson = context.TriggeringEvent.RawJson;
-        var resultJson  = context.RawAiResponse;
+        var now           = DateTime.UtcNow;
+        var triggerJson   = context.TriggeringEvent.RawJson;
+        var resultJson    = context.RawAiResponse;
+        var secondaryJson = context.SecondaryJson;
 
         // ── 1. Display ────────────────────────────────────────────────────────
         var showDisplay = ConditionEvaluator.Evaluate(
-            context.Config.DisplayCondition, triggerJson, resultJson, _auxReader.Read);
+            context.Config.DisplayCondition, triggerJson, resultJson, _auxReader.Read, secondaryJson);
 
         if (showDisplay && (!string.IsNullOrWhiteSpace(parsed.DisplayedOutput) || context.Config.DisplayTitle))
         {
             ResponseReceived?.Invoke(this, new AiResponseReceivedEventArgs
             {
-                ConfigTitle     = context.Config.Title,
-                DisplayTitle    = context.Config.DisplayTitle,
-                DisplayedOutput = parsed.DisplayedOutput,
-                AnnouncedOutput = parsed.AnnouncedOutput,
-                Timestamp       = now,
-                PromptSent      = context.BuiltPrompt      ?? string.Empty,
-                RawAiResponse   = context.RawAiResponse    ?? string.Empty,
+                ConfigTitle          = context.Config.Title,
+                DisplayTitle         = context.Config.DisplayTitle,
+                DisplayedOutput      = parsed.DisplayedOutput,
+                AnnouncedOutput      = parsed.AnnouncedOutput,
+                Timestamp            = now,
+                ShowTrayNotification = context.Config.ShowTrayNotification,
+                PromptSent           = context.BuiltPrompt      ?? string.Empty,
+                RawAiResponse        = context.RawAiResponse    ?? string.Empty,
             });
         }
 
         // ── 2. Announce (awaited — next action waits for speech to finish) ────
         var doAnnounce = ConditionEvaluator.Evaluate(
-            context.Config.AnnounceCondition, triggerJson, resultJson, _auxReader.Read);
+            context.Config.AnnounceCondition, triggerJson, resultJson, _auxReader.Read, secondaryJson);
 
         if (doAnnounce && !string.IsNullOrWhiteSpace(parsed.AnnouncedOutput))
         {
@@ -112,7 +114,7 @@ public sealed class OutputDispatcher : IOutputDispatcher
         {
             var session = await _sessionRepo.GetCurrentSessionAsync().ConfigureAwait(false);
 
-            var secondaryJson = context.SecondaryEvents.Count > 0
+            var secondaryLogJson = context.SecondaryEvents.Count > 0
                 ? JsonSerializer.Serialize(context.SecondaryEvents.Select(e => e.RawJson))
                 : null;
 
@@ -122,7 +124,7 @@ public sealed class OutputDispatcher : IOutputDispatcher
                 EventConfigurationId = context.Config.Id,
                 Timestamp            = now,
                 TriggeringEventJson  = triggerJson,
-                SecondaryEventsJson  = secondaryJson,
+                SecondaryEventsJson  = secondaryLogJson,
                 PromptSent           = context.BuiltPrompt ?? string.Empty,
                 RawAiResponse        = context.RawAiResponse ?? string.Empty,
                 DisplayedOutput      = parsed.DisplayedOutput,

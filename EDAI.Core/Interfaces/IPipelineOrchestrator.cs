@@ -11,6 +11,13 @@ namespace EDAI.Core.Interfaces;
 public interface IPipelineOrchestrator
 {
     /// <summary>
+    /// Raised whenever a journal event enters the pipeline via either
+    /// <see cref="ProcessAsync"/> or <see cref="ProcessWithConfigAsync"/>.
+    /// Subscribe to this to update any event-log UI regardless of the source.
+    /// </summary>
+    event EventHandler<ParsedJournalEvent>? EventReceived;
+
+    /// <summary>
     /// Feeds a parsed journal event into the pipeline.
     /// Matched configurations are enqueued for processing; unmatched events are discarded.
     /// </summary>

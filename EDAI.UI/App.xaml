@@ -20,8 +20,15 @@
                 approximate the MDIX dark-theme defaults so the UI looks correct
                 before the user has set a custom color.
             -->
-            <SolidColorBrush x:Key="EDAI.Brush.ControlBorder" Color="#616161" />
-            <SolidColorBrush x:Key="EDAI.Brush.ControlHover"  Color="#909090" />
+            <SolidColorBrush x:Key="EDAI.Brush.ControlBorder"      Color="#616161" />
+            <SolidColorBrush x:Key="EDAI.Brush.ControlHover"       Color="#909090" />
+            <!--
+                Button color brushes — always kept set so DynamicResource bindings in
+                EDAI.Button.Primary never resolve to nothing. ApplyAppearance updates
+                these with the user's chosen values (or falls back to the accent color).
+            -->
+            <SolidColorBrush x:Key="EDAI.Brush.ButtonBackground"   Color="#FF6D00" />
+            <SolidColorBrush x:Key="EDAI.Brush.ButtonForeground"   Color="#FFFFFF" />
 
             <!--
                 Named form-control styles derived from MDIX outlined styles.
@@ -298,6 +305,17 @@
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
+            </Style>
+            <!--
+                EDAI.Button.Primary — raised button that respects the user's
+                Button Color and Button Text theme settings.
+                Use this everywhere MaterialDesignRaisedButton was used so that
+                the two theme controls actually take effect.
+            -->
+            <Style x:Key="EDAI.Button.Primary" TargetType="{x:Type Button}"
+                   BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                <Setter Property="Background" Value="{DynamicResource EDAI.Brush.ButtonBackground}"/>
+                <Setter Property="Foreground" Value="{DynamicResource EDAI.Brush.ButtonForeground}"/>
             </Style>
         </ResourceDictionary>
     </Application.Resources>

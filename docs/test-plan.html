@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EDAI — Exhaustive Test Plan</title>
+<style>
+  :root {
+    --bg: #121212; --surface: #1e1e1e; --surface2: #2a2a2a;
+    --accent: #FF6D00; --accent2: #ff9a3c; --text: #e0e0e0;
+    --muted: #888; --pass: #4caf50; --fail: #f44336; --skip: #9e9e9e;
+    --warn: #ff9800; --border: #333;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
+  header { background: var(--accent); color: #000; padding: 24px 32px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px #0008; }
+  header h1 { font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+  header p { font-size: 12px; opacity: .8; margin-top: 2px; }
+  .layout { display: flex; min-height: 100vh; }
+  nav { width: 240px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); position: sticky; top: 64px; height: calc(100vh - 64px); overflow-y: auto; padding: 16px 0; }
+  nav a { display: block; padding: 6px 20px; color: var(--muted); text-decoration: none; font-size: 12px; border-left: 3px solid transparent; transition: all .15s; }
+  nav a:hover { color: var(--text); background: var(--surface2); }
+  nav a.section { color: var(--accent2); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .8px; padding-top: 14px; cursor: default; border-left: none; }
+  nav a.section:hover { background: none; }
+  main { flex: 1; padding: 32px; max-width: 960px; }
+  h2 { color: var(--accent); font-size: 18px; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  h2 .num { background: var(--accent); color: #000; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; }
+  h3 { color: var(--accent2); font-size: 13px; font-weight: 600; margin: 20px 0 8px; text-transform: uppercase; letter-spacing: .5px; }
+  .precondition { background: var(--surface2); border-left: 3px solid var(--warn); padding: 10px 14px; border-radius: 0 4px 4px 0; margin-bottom: 16px; font-size: 12px; color: var(--warn); }
+  .precondition strong { display: block; margin-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  th { background: var(--surface2); color: var(--accent2); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; padding: 8px 12px; text-align: left; border-bottom: 2px solid var(--border); }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; font-size: 13px; }
+  tr:hover td { background: #ffffff08; }
+  td:first-child { color: var(--muted); font-size: 11px; white-space: nowrap; font-family: monospace; }
+  td.step { color: var(--text); }
+  td.expect { color: #b0bec5; }
+  td.result { width: 90px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+  .pass  { background: #1b5e20; color: var(--pass); }
+  .fail  { background: #b71c1c; color: var(--fail); }
+  .skip  { background: #303030; color: var(--skip); }
+  select.result-select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 3px 6px; border-radius: 4px; font-size: 11px; width: 82px; }
+  input.notes { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 3px 6px; border-radius: 4px; font-size: 11px; width: 100%; }
+  .summary-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 10px 32px; display: flex; gap: 32px; align-items: center; z-index: 100; font-size: 12px; }
+  .summary-bar span { color: var(--muted); }
+  .summary-bar strong { font-size: 15px; }
+  .s-pass { color: var(--pass); } .s-fail { color: var(--fail); } .s-skip { color: var(--skip); } .s-total { color: var(--text); }
+  .tag { display: inline-block; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 10px; padding: 1px 6px; border-radius: 3px; margin-left: 6px; }
+  code { background: var(--surface2); padding: 1px 5px; border-radius: 3px; font-family: Consolas, monospace; font-size: 12px; color: #ce9178; }
+  .note { background: var(--surface2); border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 0 4px 4px 0; margin: 8px 0 16px; font-size: 12px; color: var(--muted); }
+  tbody tr td:nth-child(5) { min-width: 90px; }
+  @media print { .summary-bar, nav { display: none; } main { padding: 16px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>ELITE DANGEROUS AI — Exhaustive Test Plan</h1>
+  <p>Covers all functional areas. Mark each test Pass / Fail / Skip and add notes inline.</p>
+</header>
+<div class="layout">
+<nav>
+  <a class="section">Setup</a>
+  <a href="#s1">1. Fresh Install / DB</a>
+  <a href="#s2">2. Startup Sequence</a>
+  <a class="section">Settings</a>
+  <a href="#s3">3. Application Settings</a>
+  <a href="#s4">4. Theme Customization</a>
+  <a class="section">Configs</a>
+  <a href="#s5">5. Category Management</a>
+  <a href="#s6">6. Config Selection</a>
+  <a href="#s7">7. Config Edit — Trigger Tab</a>
+  <a href="#s8">8. Config Edit — Output Tab</a>
+  <a href="#s9">9. Config Edit — Actions</a>
+  <a class="section">Pipeline</a>
+  <a href="#s10">10. Journal Watching</a>
+  <a href="#s11">11. Trigger Matching</a>
+  <a href="#s12">12. Cooldown</a>
+  <a href="#s13">13. Secondary Events</a>
+  <a href="#s14">14. OpenAI Integration</a>
+  <a class="section">Output</a>
+  <a href="#s15">15. Display Output</a>
+  <a href="#s16">16. TTS — SAPI</a>
+  <a href="#s17">17. TTS — Edge Neural</a>
+  <a href="#s18">18. Voice Cache</a>
+  <a href="#s19">19. Tray Notifications</a>
+  <a class="section">Main Window</a>
+  <a href="#s20">20. AI Responses Tab</a>
+  <a href="#s21">21. History Tab</a>
+  <a href="#s22">22. Event Log Panel</a>
+  <a href="#s23">23. Toolbar Controls</a>
+  <a class="section">Window</a>
+  <a href="#s24">24. Window Geometry</a>
+  <a href="#s25">25. Tray Behaviour</a>
+  <a class="section">Errors</a>
+  <a href="#s26">26. Error Handling</a>
+  <a class="section">Data</a>
+  <a href="#s27">27. Config Export/Import</a>
+  <a href="#s28">28. Session History</a>
+  <a href="#s29">29. Test Screen</a>
+</nav>
+<main>
+
+<!-- ═══════════════════════════════════════════════════════════ S1 -->
+<h2 id="s1"><span class="num">1</span> Fresh Install / Database</h2>
+<div class="precondition"><strong>Pre-condition</strong> Delete or rename <code>EDAI.db</code> from the output folder before running these tests. Confirm no <code>EDAI.db</code> file exists at startup.</div>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>1.01</td><td class="step">Launch EDAI with no <code>EDAI.db</code> present.</td><td class="expect"><code>EDAI.db</code> is created in the output folder. All EF migrations are applied. No error dialog appears.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>1.02</td><td class="step">Inspect <code>EDAI.log</code> immediately after launch.</td><td class="expect">Log shows EF migration SQL statements executing all migrations from the initial create through the latest (<code>AddJournalPath</code>).</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>1.03</td><td class="step">Open Settings without having entered any data.</td><td class="expect">All fields show sensible defaults: model <code>gpt-4o</code>, TTS Enabled checked, SAPI engine, Dark theme, font size 14, journal path set to current user's Elite Dangerous save-game folder.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>1.04</td><td class="step">Close Settings without saving, then reopen.</td><td class="expect">No settings row is spuriously inserted; defaults remain consistent across opens.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>1.05</td><td class="step">Create a trigger event on the Test screen with no API key configured (first time).</td><td class="expect">A <strong>modal critical-error dialog</strong> appears saying the API key is not configured. Status bar also updates.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>1.06</td><td class="step">Trigger a second test run with no API key (without entering one).</td><td class="expect">No second modal dialog. Status bar shows the missing-key message only.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>1.07</td><td class="step">Enter a valid API key, complete a successful call, then clear the key and trigger again.</td><td class="expect">The modal critical-error dialog reappears (flag was reset on successful call).</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S2 -->
+<h2 id="s2"><span class="num">2</span> Startup Sequence</h2>
+<div class="precondition"><strong>Pre-condition</strong> Normal launch with existing database and settings.</div>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>2.01</td><td class="step">Launch EDAI with <em>Show Splash Screen</em> enabled.</td><td class="expect">Splash window appears centred on primary monitor. Main window is not shown yet. Splash disappears after ≥5 seconds.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>2.02</td><td class="step">Launch EDAI with <em>Show Splash Screen</em> disabled.</td><td class="expect">No splash window. Main window appears immediately.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>2.03</td><td class="step">Observe main window initial state.</td><td class="expect">Title bar reads <em>Elite Dangerous AI</em>. Dark theme applied. Toolbar visible. Status bar visible. Both panels (AI Responses / Event Log) empty.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>2.04</td><td class="step">Check system tray after startup.</td><td class="expect">EDAI tray icon is visible in the system notification area.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>2.05</td><td class="step">Observe status bar on startup when journal directory exists.</td><td class="expect">No error shown. Status bar reflects watching state.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>2.06</td><td class="step">Set journal path to a non-existent folder, then restart.</td><td class="expect">A critical-error <strong>modal dialog</strong> states the journal directory was not found. App continues to load; all other functions remain available.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>2.07</td><td class="step">Observe window position on first launch after clearing saved geometry.</td><td class="expect">Window centred on primary monitor at saved or default size (900×600).</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>2.08</td><td class="step">Verify Edge voice list loads in background (Settings → Edge Neural Voices).</td><td class="expect">Voice dropdown populates within a few seconds; main window was not blocked during fetch.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S3 -->
+<h2 id="s3"><span class="num">3</span> Application Settings</h2>
+<div class="precondition"><strong>Pre-condition</strong> Open Settings via toolbar cog icon.</div>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>3.01</td><td class="step">Enter a valid OpenAI API key and click Save.</td><td class="expect">Settings window closes. Key persists (visible on next open, masked).</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>3.02</td><td class="step">Change OpenAI model to <code>gpt-4o-mini</code> and save.</td><td class="expect">Model persists. Subsequent AI calls use <code>gpt-4o-mini</code> (verify in <code>EDAI.log</code>).</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>3.03</td><td class="step">Type a custom model ID not in the dropdown list and save.</td><td class="expect">Custom model ID persists and is used for AI calls.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>3.04</td><td class="step">Uncheck <em>TTS Enabled</em> and save.</td><td class="expect">TTS mute icon in toolbar reflects off state. No speech on subsequent AI responses.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>3.05</td><td class="step">Switch Voice Engine to <em>Windows Speech (SAPI)</em>, select a voice from the dropdown, click <em>Test Voice</em>.</td><td class="expect">Selected voice speaks the test phrase immediately. No error.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>3.06</td><td class="step">Switch Voice Engine to <em>Edge Neural Voices (Online)</em>. Select English (US) language, choose a voice, click <em>Test Voice</em>.</td><td class="expect">Edge neural voice speaks the test phrase. <code>EDAI.log</code> shows TTS API call (cache miss on first use).</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>3.07</td><td class="step">Click <em>Test Voice</em> again with Edge, same phrase and settings.</td><td class="expect"><code>EDAI.log</code> shows cache <em>hit</em> — no API call made. Audio plays from cache file.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>3.08</td><td class="step">Adjust Edge Rate slider to 1.5×, click <em>Test Voice</em>.</td><td class="expect">Voice speaks noticeably faster. Cache miss logged (rate changed = different hash).</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>3.09</td><td class="step">Adjust Edge Pitch slider to 1.5×, click <em>Test Voice</em>.</td><td class="expect">Voice pitch is noticeably higher. Cache miss logged.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>3.10</td><td class="step">Click <em>Clear Voice Cache</em>.</td><td class="expect">Confirmation dialog appears. On confirming: <code>EDAI.log</code> shows "Voice cache cleared. Removed X files and X database entries." Cache folder is empty.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>3.11</td><td class="step">Click <em>Clear Voice Cache</em> when cache is already empty.</td><td class="expect">Confirmation dialog appears. On confirming: log shows "Removed 0 files and 0 database entries." No error.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>3.12</td><td class="step">Click <em>Clear Voice Cache</em> then cancel the confirmation dialog.</td><td class="expect">No files deleted, no log entry for clearing. Cache unchanged.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>3.13</td><td class="step">Manually delete the <code>voice_cache</code> folder, then click <em>Clear Voice Cache</em> and confirm.</td><td class="expect">No file-deletion errors. DB rows still deleted. Log: "Removed 0 files and X database entries."</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>3.14</td><td class="step">Uncheck <em>Tray Notifications Enabled</em> and save.</td><td class="expect">Balloon notifications no longer appear when minimised, regardless of per-config setting.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>3.15</td><td class="step">Enable <em>Always on Top</em> and save.</td><td class="expect">Main window floats above other windows. Toolbar Always-on-Top toggle reflects checked state.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>3.16</td><td class="step">Change font family to <em>Consolas</em> and font size to 18, save.</td><td class="expect">Main window font changes to Consolas 18pt immediately. Reopening settings shows saved values.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>3.17</td><td class="step">Click <em>Browse…</em> next to Journal Folder. Select a valid folder. Click Save.</td><td class="expect">Journal path text box updates. Saved path persists on next open. Watcher updates on next restart.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>3.18</td><td class="step">Click <em>Cancel</em> after making changes.</td><td class="expect">Settings window closes. No changes persisted. TTS engine reverts to pre-session state.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>3.19</td><td class="step">Open Settings, change engine to Edge, cancel, then check active TTS engine.</td><td class="expect">TTS engine reverts to what it was before opening Settings (not Edge).</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S4 -->
+<h2 id="s4"><span class="num">4</span> Theme Customization</h2>
+<div class="precondition"><strong>Pre-condition</strong> Open Theme Customization via palette toolbar button.</div>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>4.01</td><td class="step">Switch base theme to <em>Light</em> and apply.</td><td class="expect">Main window background turns light. All controls adapt to light theme. Persists after restart.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>4.02</td><td class="step">Switch base theme to <em>Dark</em> and apply.</td><td class="expect">Main window returns to dark theme. Persists after restart.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>4.03</td><td class="step">Change Primary Color using the HSV picker and apply.</td><td class="expect">Toolbar, primary highlights, and Material Design accents all update immediately. New colour persists after restart.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>4.04</td><td class="step">Set a custom Toolbar Background colour and apply.</td><td class="expect">Toolbar background changes to the selected colour. Persists after restart.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>4.05</td><td class="step">Set a custom Toolbar Foreground colour and apply.</td><td class="expect">Toolbar button icons and text adopt the new colour.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>4.06</td><td class="step">Set custom Control Background and Control Border colours, apply.</td><td class="expect">Text boxes and combo boxes in the UI reflect the new background and border colours.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>4.07</td><td class="step">Click <em>Cancel</em> after making colour changes without applying.</td><td class="expect">All colour changes revert. No values persisted.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>4.08</td><td class="step">Apply a custom background colour, then launch a new child window (e.g. Settings).</td><td class="expect">New window inherits the same theme and font settings.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S5 -->
+<h2 id="s5"><span class="num">5</span> Category Management</h2>
+<div class="precondition"><strong>Pre-condition</strong> Open Category Management via Event Configurations → Manage Categories button.</div>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>5.01</td><td class="step">Add a new category named <em>Combat</em>.</td><td class="expect">Category appears in the list immediately. Persists after closing and reopening Category Management.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>5.02</td><td class="step">Add a duplicate category name <em>Combat</em>.</td><td class="expect">Error or validation prevents the duplicate. Category list remains unchanged.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>5.03</td><td class="step">Rename <em>Combat</em> to <em>Combat Events</em>.</td><td class="expect">List updates with new name. Existing EventConfigurations linked to this category still reference it correctly.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>5.04</td><td class="step">Delete a category that has no EventConfigurations assigned.</td><td class="expect">Category is removed. No warning about in-use items.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>5.05</td><td class="step">Assign an EventConfiguration to <em>Combat Events</em>, then try to delete that category.</td><td class="expect">Warning dialog states the category is in use. Category is <em>not</em> deleted unless confirmed.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>5.06</td><td class="step">Verify Category dropdown in Event Config Edit screen shows new categories.</td><td class="expect">All categories created in Category Management appear in the edit form dropdown.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S6 -->
+<h2 id="s6"><span class="num">6</span> Event Configuration Selection</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>6.01</td><td class="step">Open Event Configurations. Observe list with multiple configs.</td><td class="expect">All configured EventConfigurations appear with correct Title, Category, and Triggering Events summary.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>6.02</td><td class="step">Filter list by a specific Category from the dropdown.</td><td class="expect">Only configs in that category are shown.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>6.03</td><td class="step">Type a partial title in the search box with search mode set to <em>Title</em>.</td><td class="expect">List filters to matching titles in real time.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>6.04</td><td class="step">Search by <em>Primary Trigger</em> using a known event type string.</td><td class="expect">Only configs that include that event type in TriggeringEvents are shown.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>6.05</td><td class="step">Toggle the <em>Enabled</em> checkbox on a row. Observe inline Save (✓) and Cancel (✗) buttons.</td><td class="expect">Inline controls appear. Clicking ✓ saves the new enabled state. Clicking ✗ reverts without saving.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>6.06</td><td class="step">Double-click a config row.</td><td class="expect">Edit window opens pre-populated with that config's data.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>6.07</td><td class="step">Click <em>New Config</em> button.</td><td class="expect">Edit window opens with all fields blank/defaulted. No existing record is modified.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S7 -->
+<h2 id="s7"><span class="num">7</span> Config Edit — Trigger Tab</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>7.01</td><td class="step">Create a new config. Leave Title blank and click Save.</td><td class="expect">Validation prevents save. Title field is highlighted as required.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>7.02</td><td class="step">Add two triggering event types (e.g. <code>FSDJump</code> and <code>SupercruiseEntry</code>).</td><td class="expect">Both event type chips appear. Both are individually removable.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>7.03</td><td class="step">Set Trigger Cooldown to <code>30</code> Seconds. Save. Trigger the config twice within 30 seconds via the Test screen.</td><td class="expect">First trigger fires normally. Second trigger is suppressed. <code>EDAI.log</code> shows suppression with time-remaining message (e.g. "28 seconds remaining").</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>7.04</td><td class="step">Set Trigger Cooldown to <code>1</code> Minute. Trigger once, wait 61 seconds, trigger again.</td><td class="expect">Second trigger fires after cooldown expires. No suppression log entry for second trigger.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>7.05</td><td class="step">Set Trigger Cooldown to <code>0</code> Seconds (disabled).</td><td class="expect">Triggering rapidly produces a response each time — no suppression.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>7.06</td><td class="step">Test unit conversions: set <code>90</code> Seconds, save, reopen config.</td><td class="expect">Cooldown displays as the closest natural unit (e.g. could remain as 90 Seconds or convert; verify value round-trips correctly).</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>7.07</td><td class="step">Add three Secondary Event types and set Secondary Wait Time to 2000 ms.</td><td class="expect">All three types stored. Wait time persists on reopen.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>7.08</td><td class="step">Enter a Trigger Condition expression and save.</td><td class="expect">Expression persists on reopen. (Functional evaluation tested in section 11.)</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S8 -->
+<h2 id="s8"><span class="num">8</span> Config Edit — Output Tab</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>8.01</td><td class="step">Uncheck <em>Send to AI</em>. Verify that Prompt, Schema, and Model Override fields are disabled or hidden.</td><td class="expect">AI-specific fields become unavailable. Config still allows display/TTS output from raw event data.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>8.02</td><td class="step">Set Model Override to <code>gpt-4o-mini</code>. Trigger config via Test screen.</td><td class="expect"><code>EDAI.log</code> shows request using <code>gpt-4o-mini</code> not the global model.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>8.03</td><td class="step">Enable <em>Send Full Trigger Event</em>.</td><td class="expect"><code>EDAI.log</code> prompt includes the complete raw trigger event JSON, not just selected fields.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>8.04</td><td class="step">Enter a valid Expected Results Schema: <code>{"summary": "", "threat": ""}</code>. Add <code>summary</code> to Display Fields.</td><td class="expect">AI response shows only the <em>summary</em> value in the Responses tab.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>8.05</td><td class="step">Enable <em>Display Keys</em> for the same config.</td><td class="expect">Response card shows <code>Summary: &lt;value&gt;</code> instead of just the value.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>8.06</td><td class="step">Add <code>threat</code> to Announce Fields. Trigger the config.</td><td class="expect">TTS speaks the threat value (and key if Announce Keys enabled). Display shows summary only.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>8.07</td><td class="step">Enable <em>Display Title</em>. Trigger config.</td><td class="expect">Config title appears at top of response card in accent colour.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>8.08</td><td class="step">Enable <em>Announce Title</em>. Trigger config.</td><td class="expect">TTS speaks the config title before the announce fields.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>8.09</td><td class="step">Enable <em>Show Tray Notification</em>. Minimise EDAI. Trigger config.</td><td class="expect">Windows balloon notification appears showing config title and response summary.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S9 -->
+<h2 id="s9"><span class="num">9</span> Config Edit — Save / Cancel / Delete</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>9.01</td><td class="step">Save a valid new EventConfiguration.</td><td class="expect">Edit window closes. Config appears in the Selection list. All fields persist on reopen.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>9.02</td><td class="step">Edit an existing config, change the title, click Cancel.</td><td class="expect">Edit window closes. Original title unchanged in the Selection list.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>9.03</td><td class="step">Click <em>Delete</em> on an existing config. Cancel the confirmation.</td><td class="expect">Config is not deleted. Edit window remains open.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>9.04</td><td class="step">Click <em>Delete</em> on an existing config. Confirm.</td><td class="expect">Edit window closes. Config removed from the Selection list. Not visible on reopen.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>9.05</td><td class="step">Toggle <em>IsEnabled</em> on the edit screen and save.</td><td class="expect">Selection list shows correct enabled state. Pipeline only processes enabled configs.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S10 -->
+<h2 id="s10"><span class="num">10</span> Journal Watching</h2>
+<div class="precondition"><strong>Pre-condition</strong> Elite Dangerous installed and journal directory exists at the configured path.</div>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>10.01</td><td class="step">Launch app while journal directory exists. Check <code>EDAI.log</code>.</td><td class="expect">Log shows "Tailing journal file: Journal.*.log" for the most recent journal file, or "No journal files found" if no game session exists yet.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>10.02</td><td class="step">Start a game session (or copy a journal line into the active file). Observe Event Log panel.</td><td class="expect">Matching events appear in the Event Log panel within 1–2 seconds of being written to the journal file.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>10.03</td><td class="step">Create a new journal file (simulating a new game session) while the app is running.</td><td class="expect"><code>EDAI.log</code> shows "New journal file detected". Watcher switches to the new file. Old file events no longer trigger responses.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>10.04</td><td class="step">Change Journal Folder in Settings to a valid alternate folder with a test journal file. Restart app.</td><td class="expect">App tails the file in the new folder. Original journal folder is not monitored.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>10.05</td><td class="step">Append multiple journal lines rapidly to the active file (e.g. via script).</td><td class="expect">All complete lines are processed in order. No lines skipped. No crash. Partial lines at write boundary are buffered until the newline arrives.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S11 -->
+<h2 id="s11"><span class="num">11</span> Trigger Matching</h2>
+<div class="precondition"><strong>Pre-condition</strong> Use the Test screen to inject journal lines unless noted.</div>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>11.01</td><td class="step">Paste a journal line whose event type exactly matches a single enabled config's TriggeringEvents. Run test.</td><td class="expect">That config's pipeline executes. Event Log entry appears.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>11.02</td><td class="step">Paste a journal line that matches two different enabled configs (OR logic across configs).</td><td class="expect">Both configs execute independently. Two response cards appear.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>11.03</td><td class="step">A single config has two TriggeringEvents. Paste each event type separately.</td><td class="expect">Each event independently triggers the config (OR logic within the config).</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>11.04</td><td class="step">Paste a journal line that matches no config's TriggeringEvents.</td><td class="expect">No response, no Event Log entry, no error. Event silently discarded.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>11.05</td><td class="step">Disable a config that matches the event type. Paste the matching event.</td><td class="expect">Disabled config does not execute. No response produced for it.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>11.06</td><td class="step">Paste a line with event type in a different case (e.g. <code>fsdjump</code> when config has <code>FSDJump</code>).</td><td class="expect">Trigger matching is case-insensitive — config still fires.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S12 -->
+<h2 id="s12"><span class="num">12</span> Trigger Cooldown</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>12.01</td><td class="step">Config with 30-second cooldown. Trigger → immediately trigger again.</td><td class="expect">Second trigger suppressed. <code>EDAI.log</code>: "suppressed by cooldown … ~29 seconds remaining".</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>12.02</td><td class="step">Log message for a cooldown of 1 min 45 sec remaining.</td><td class="expect">Message reads "1 minute 45 seconds remaining" (natural English, no leading zeros).</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>12.03</td><td class="step">Log message for a cooldown of 2 hours 3 minutes remaining.</td><td class="expect">Message reads "2 hours 3 minutes remaining".</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>12.04</td><td class="step">Two different configs, each with a cooldown. Trigger A suppressed; trigger B.</td><td class="expect">Cooldown is tracked per-config. Suppressing A does not affect B.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S13 -->
+<h2 id="s13"><span class="num">13</span> Secondary Events</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>13.01</td><td class="step">Config with secondary event <code>Location</code>, wait 2000 ms. Paste trigger event then <code>Location</code> event within 2 seconds.</td><td class="expect"><code>EDAI.log</code> prompt includes both triggering event JSON and the Location secondary event JSON.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>13.02</td><td class="step">Same config. Paste trigger event, wait 3 seconds, then paste Location event.</td><td class="expect">Secondary event is <em>not</em> collected (arrived after wait window). Prompt contains triggering event only.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>13.03</td><td class="step">Config with no secondary events configured. Trigger it.</td><td class="expect">Pipeline does not wait — AI call fires immediately after trigger. No secondary section in prompt.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S14 -->
+<h2 id="s14"><span class="num">14</span> OpenAI Integration</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>14.01</td><td class="step">Trigger a config with valid API key and schema. Check <code>EDAI.log</code>.</td><td class="expect">Log shows: Model, full system prompt, user prompt, then response JSON and elapsed time in ms.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>14.02</td><td class="step">Enter an invalid API key. Trigger a config.</td><td class="expect">Status bar shows an OpenAI error message. <code>EDAI.log</code> records the exception. No crash.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>14.03</td><td class="step">Set global model to <code>gpt-4o</code>, set a config's ModelOverride to <code>gpt-4o-mini</code>. Trigger that config and another without override.</td><td class="expect">Log shows overridden config using <code>gpt-4o-mini</code>; non-overridden config using <code>gpt-4o</code>.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>14.04</td><td class="step">Verify the system persona appears in every request log entry.</td><td class="expect">Every OpenAI Request log block includes the EDAI ship computer persona in the System section.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>14.05</td><td class="step">Trigger the same config twice in quick succession (no cooldown).</td><td class="expect">Both AI calls complete and both response cards appear. Calls are queued — no race condition or lost response.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>14.06</td><td class="step">ResponseLog: after a triggered AI response, verify the DB row.</td><td class="expect">A row exists in ResponseLogs with correct <code>PromptSent</code>, <code>RawAiResponse</code>, <code>DisplayedOutput</code>, <code>Timestamp</code>, and correct FK to EventConfiguration.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S15 -->
+<h2 id="s15"><span class="num">15</span> Display Output</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>15.01</td><td class="step">Trigger a config with Display Fields and Display Keys enabled.</td><td class="expect">Response card in AI Responses tab shows <code>FieldName: value</code> lines for each display field.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>15.02</td><td class="step">Same config with Display Keys disabled.</td><td class="expect">Response card shows only the values — no key labels.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>15.03</td><td class="step">Trigger multiple configs. Observe AI Responses tab with more than 10 cards.</td><td class="expect">All cards are present and scrollable. Newest at the top (or bottom — confirm expected order is consistent).</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>15.04</td><td class="step">Click toolbar <em>Clear Responses</em> button.</td><td class="expect">AI Responses tab is emptied. History tab and DB are unaffected.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S16 -->
+<h2 id="s16"><span class="num">16</span> TTS — Windows SAPI</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>16.01</td><td class="step">Settings: SAPI engine, valid voice selected. Trigger a config with Announce Fields. TTS Enabled.</td><td class="expect">Announce field value is spoken by the SAPI voice.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>16.02</td><td class="step">Toggle TTS off via toolbar button during a response. Trigger another config.</td><td class="expect">No speech for the second response. Toggle persists until changed.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>16.03</td><td class="step">Trigger two configs in rapid succession (both have Announce Fields).</td><td class="expect">Both phrases are spoken in order. Second phrase begins only after first finishes.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>16.04</td><td class="step">Set SAPI voice to a non-existent voice name via direct DB edit. Restart. Test voice selection.</td><td class="expect">Warning logged. SAPI falls back to system default voice. No crash.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S17 -->
+<h2 id="s17"><span class="num">17</span> TTS — Edge Neural Voices</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>17.01</td><td class="step">Settings: Edge Neural engine, <em>en-US-AriaNeural</em>, rate 1.0, pitch 1.0. Trigger a config.</td><td class="expect">Neural voice speaks the announce text. <code>EDAI.log</code> shows API call (cache miss).</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>17.02</td><td class="step">Trigger same config again (same phrase, same voice, rate, pitch).</td><td class="expect"><code>EDAI.log</code> shows cache <em>hit</em>. Audio plays from disk. No WebSocket call.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>17.03</td><td class="step">Switch to <em>en-GB-SoniaNeural</em>. Trigger same config.</td><td class="expect">Cache miss (different voice = different hash). New API call. British voice audible.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>17.04</td><td class="step">Disconnect from the internet. Trigger a config with a phrase not in cache.</td><td class="expect">Edge TTS error logged as minor error. Status bar shows error. No crash. Cached phrases still play.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>17.05</td><td class="step">Verify <code>voice_cache/</code> folder structure.</td><td class="expect">MP3 files are stored in 2-character shard subdirectories (first 2 chars of hash). Each file is a valid MP3.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S18 -->
+<h2 id="s18"><span class="num">18</span> Voice Cache</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>18.01</td><td class="step">Manually delete all MP3 files from <code>voice_cache/</code> but leave DB rows. Trigger a cached phrase.</td><td class="expect">Cache lookup finds the DB row but file is missing. Falls back to API call. New file written. No crash or error dialog.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>18.02</td><td class="step">Delete all DB rows from VoiceCache but leave MP3 files. Trigger a phrase previously cached.</td><td class="expect">Cache miss (no DB row). New API call made. New DB row and file created (file may be duplicate on disk — no crash).</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>18.03</td><td class="step">After clearing the cache (3.10), trigger the same phrase again.</td><td class="expect">Fresh API call. New cache entry created. Audio plays correctly.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S19 -->
+<h2 id="s19"><span class="num">19</span> Tray Notifications</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>19.01</td><td class="step">Config with <em>Show Tray Notification</em> on, global tray on. Trigger while EDAI is visible (not minimised).</td><td class="expect">No balloon notification. Notification only fires when app is hidden in tray.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>19.02</td><td class="step">Same config. Minimise EDAI to tray. Trigger config.</td><td class="expect">Windows balloon notification appears with config title and truncated response. Balloon disappears after a few seconds.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>19.03</td><td class="step">Config with <em>Show Tray Notification</em> off. Minimise. Trigger.</td><td class="expect">No balloon notification despite app being minimised.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>19.04</td><td class="step">Global <em>Tray Notifications Enabled</em> off. Config has it on. Minimise. Trigger.</td><td class="expect">No balloon. Global setting overrides per-config setting.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S20 -->
+<h2 id="s20"><span class="num">20</span> AI Responses Tab</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>20.01</td><td class="step">Trigger a config with <em>Display Title</em> on.</td><td class="expect">Card shows config title in accent colour above the response text.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>20.02</td><td class="step">Trigger a config with <em>Display Title</em> off.</td><td class="expect">Card shows only the response text. No title row.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>20.03</td><td class="step">Trigger a config where the AI returns no matching display fields.</td><td class="expect">No card added (or an empty/placeholder card, depending on implementation). No crash.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>20.04</td><td class="step">Observe timestamp on each response card.</td><td class="expect">Timestamp shown as <code>HH:mm:ss</code> and matches the time the response was received.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S21 -->
+<h2 id="s21"><span class="num">21</span> History Tab</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>21.01</td><td class="step">Launch app with existing ResponseLog entries. Switch to History tab.</td><td class="expect">Up to 100 most recent entries loaded from DB. Each shows timestamp, config title, and truncated summary in the collapsed header.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>21.02</td><td class="step">Click to expand a History item.</td><td class="expect">Full Prompt Sent and Raw AI Response are shown in read-only Consolas text areas. Both are scrollable if long.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>21.03</td><td class="step">Collapse an expanded History item.</td><td class="expect">Item collapses back to the header summary.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>21.04</td><td class="step">Trigger a new AI response while on the History tab.</td><td class="expect">New entry prepended to the top of the History list without requiring a restart.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>21.05</td><td class="step">History tab with more than 100 DB entries. Launch app.</td><td class="expect">Exactly 100 entries displayed — the 100 most recent. Older entries not shown.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>21.06</td><td class="step">Clear Responses (toolbar). Check History tab.</td><td class="expect">History tab is <em>not</em> cleared — it reflects DB state, not in-memory display state.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S22 -->
+<h2 id="s22"><span class="num">22</span> Event Log Panel</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>22.01</td><td class="step">Trigger several events via Test screen.</td><td class="expect">Each triggering event appears in the Event Log panel showing event type and timestamp.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>22.02</td><td class="step">Paste a journal line for an event type with no matching config.</td><td class="expect">Event does not appear in the Event Log (only matched/triggered events are logged).</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>22.03</td><td class="step">Drag the grid splitter between responses and event log panels.</td><td class="expect">Panels resize proportionally. Content in both remains readable.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S23 -->
+<h2 id="s23"><span class="num">23</span> Toolbar Controls</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>23.01</td><td class="step">Click Settings (cog) button.</td><td class="expect">Settings window opens centred over main window.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>23.02</td><td class="step">Click Event Configurations (list) button.</td><td class="expect">Selection window opens.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>23.03</td><td class="step">Click Test (test tube) button.</td><td class="expect">Test window opens.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>23.04</td><td class="step">Click Always on Top (pin) toggle. Verify. Click again to disable. Verify.</td><td class="expect">Window topmost state changes immediately. Toggle visual state matches actual topmost state.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>23.05</td><td class="step">Click TTS toggle (speaker icon). Verify TTS is muted. Click again. Verify unmuted.</td><td class="expect">Toggle state matches. TTS does not speak while muted.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>23.06</td><td class="step">Click Theme Customization (palette) button.</td><td class="expect">Theme window opens.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>23.07</td><td class="step">Click About (information) button.</td><td class="expect">About window opens with application name and information.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>23.08</td><td class="step">Restart app. Verify Always on Top state is restored from saved setting.</td><td class="expect">Window topmost state matches what was saved. Toolbar toggle reflects the saved state.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S24 -->
+<h2 id="s24"><span class="num">24</span> Window Geometry</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>24.01</td><td class="step">Resize main window. Close app via tray Exit. Relaunch.</td><td class="expect">Window restores to saved size.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>24.02</td><td class="step">Move main window to a specific position. Exit. Relaunch.</td><td class="expect">Window restores to saved position (on-screen).</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>24.03</td><td class="step">Maximise main window. Exit. Relaunch.</td><td class="expect">Window relaunches maximised.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>24.04</td><td class="step">Manually set <code>WindowLeft</code>/<code>WindowTop</code> in the DB to values far off-screen (e.g. -9999, -9999). Relaunch.</td><td class="expect">Off-screen position detected. Window centres on primary monitor instead. No part of the window is clipped off screen.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>24.05</td><td class="step">Set window position to be just barely on-screen (100px strip visible). Relaunch.</td><td class="expect">Position is accepted (at least 100×50 strip on-screen check passes). Window appears partially on screen.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S25 -->
+<h2 id="s25"><span class="num">25</span> Tray Behaviour</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>25.01</td><td class="step">Click the window X (close) button.</td><td class="expect">Window hides. App continues running. Tray icon remains.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>25.02</td><td class="step">Double-click tray icon while window is hidden.</td><td class="expect">Main window restores to its saved position and size.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>25.03</td><td class="step">Right-click tray icon. Click <em>Restore</em>.</td><td class="expect">Main window restores.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>25.04</td><td class="step">Right-click tray icon. Click <em>Exit</em>.</td><td class="expect">App fully exits. Tray icon removed. Process no longer visible in Task Manager.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>25.05</td><td class="step">Hide to tray. Trigger a config. Verify journal watching continued while hidden.</td><td class="expect">Pipeline ran while hidden. On restore, new entry is visible in History tab.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S26 -->
+<h2 id="s26"><span class="num">26</span> Error Handling &amp; Logging</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>26.01</td><td class="step">Paste malformed JSON (not valid JSON) on the Test screen. Run test.</td><td class="expect">Parse error logged. Status bar shows minor error. App does not crash. No response generated.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>26.02</td><td class="step">Paste valid JSON with no <code>event</code> field.</td><td class="expect">Parse failure or no-match — silently discarded. No crash.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>26.03</td><td class="step">Enter an invalid (expired) OpenAI API key. Trigger a config.</td><td class="expect">Minor error in status bar: "OpenAI call failed: …". Full exception in <code>EDAI.log</code>. No crash.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>26.04</td><td class="step">Check <code>EDAI.log</code> after a normal run.</td><td class="expect">Log entries follow the format <code>[TIMESTAMP] [LEVEL] [SOURCE] Message</code>. INFO, WARNING, and ERROR levels all present where expected.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>26.05</td><td class="step">Lock <code>EDAI.db</code> (open exclusively in another tool). Launch EDAI.</td><td class="expect">Critical error dialog on startup. Descriptive message about DB unavailability. App may not proceed but does not silently hang.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S27 -->
+<h2 id="s27"><span class="num">27</span> Config Export / Import</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>27.01</td><td class="step">Export one EventConfiguration to a JSON file.</td><td class="expect">File saved. JSON contains all fields including TriggeringEvents, Prompt, Schema, Cooldown, etc.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>27.02</td><td class="step">Delete that config from the DB. Import the exported JSON file.</td><td class="expect">Config re-appears in the Selection list with all original field values intact.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>27.03</td><td class="step">Export multiple configs in one operation.</td><td class="expect">All configs included in the exported file. All can be re-imported together.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>27.04</td><td class="step">Import a file that references a Category not in the current DB.</td><td class="expect">Category is created automatically, or config imported with null CategoryId. No crash.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S28 -->
+<h2 id="s28"><span class="num">28</span> Session History</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>28.01</td><td class="step">Paste a <code>{"event":"LoadGame","Commander":"TestPilot",...}</code> line on the Test screen.</td><td class="expect">A new SessionHistory row is created in the DB with <code>CommanderName = "TestPilot"</code> and a <code>SessionStart</code> timestamp.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>28.02</td><td class="step">Exit the application via tray Exit.</td><td class="expect">Current session's <code>SessionEnd</code> timestamp is updated in the DB.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>28.03</td><td class="step">Trigger a second <code>LoadGame</code> event without restarting the app.</td><td class="expect">Previous session is closed (<code>SessionEnd</code> set). New session row created.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════ S29 -->
+<h2 id="s29"><span class="num">29</span> Test Screen</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Expected Result</th><th>Notes</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>29.01</td><td class="step">Open Test screen. Paste a single valid journal line and click Run Test.</td><td class="expect">Pipeline processes the line exactly as if it came from the live journal. Response appears in test output area.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>29.02</td><td class="step">Paste multiple journal lines (one per line) and run test.</td><td class="expect">Each line is processed in order. Multiple responses may appear if multiple configs match.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>29.03</td><td class="step">Paste a trigger line followed by a secondary event line (within wait time). Run test.</td><td class="expect">Secondary event is collected. Prompt includes both events.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>29.04</td><td class="step">Run test with TTS enabled. Verify audio plays from Test screen results.</td><td class="expect">TTS speaks the announce output for the matching config.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+<tr><td>29.05</td><td class="step">Verify test output also appears in main window AI Responses tab and History tab.</td><td class="expect">Test pipeline uses the same OutputDispatcher — both tabs update from test runs.</td><td><input class="notes" /></td><td class="result"><select class="result-select" onchange="tally()"><option value="">—</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="skip">Skip</option></select></td></tr>
+</tbody>
+</table>
+
+<div style="height:60px"></div>
+</main>
+</div>
+
+<div class="summary-bar">
+  <span>Progress: <strong id="pct" class="s-total">0%</strong></span>
+  <span><strong id="cnt-pass" class="s-pass">0</strong> Pass</span>
+  <span><strong id="cnt-fail" class="s-fail">0</strong> Fail</span>
+  <span><strong id="cnt-skip" class="s-skip">0</strong> Skip</span>
+  <span class="s-total"><strong id="cnt-done">0</strong> / <strong id="cnt-total">0</strong> answered</span>
+  <span style="margin-left:auto;color:var(--muted);font-size:11px">Results saved in this tab only — print to preserve.</span>
+</div>
+
+<script>
+function tally() {
+  const selects = document.querySelectorAll('select.result-select');
+  let pass=0, fail=0, skip=0, done=0, total=selects.length;
+  selects.forEach(s => {
+    if (s.value==='pass') { pass++; done++; }
+    else if (s.value==='fail') { fail++; done++; }
+    else if (s.value==='skip') { skip++; done++; }
+  });
+  document.getElementById('cnt-pass').textContent  = pass;
+  document.getElementById('cnt-fail').textContent  = fail;
+  document.getElementById('cnt-skip').textContent  = skip;
+  document.getElementById('cnt-done').textContent  = done;
+  document.getElementById('cnt-total').textContent = total;
+  document.getElementById('pct').textContent = total ? Math.round(done/total*100)+'%' : '0%';
+}
+tally();
+
+// Highlight fail rows
+document.querySelectorAll('select.result-select').forEach(s => {
+  s.addEventListener('change', function() {
+    const row = this.closest('tr');
+    row.style.background = this.value==='fail' ? '#b71c1c22' : this.value==='pass' ? '#1b5e2022' : '';
+    tally();
+  });
+});
+</script>
+</body>
+</html>
