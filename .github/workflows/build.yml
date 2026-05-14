@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # MinVer needs full tag history
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore EDAI.UI/EDAI.UI.csproj
+
+      - name: Build
+        run: dotnet build EDAI.UI/EDAI.UI.csproj --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --configuration Release
