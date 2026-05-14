@@ -1,0 +1,6 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: Ask a question
+    url: https://github.com/KarlGrear/EDAI/discussions/new/choose
+    about: Questions, help getting started, and general discussion go here

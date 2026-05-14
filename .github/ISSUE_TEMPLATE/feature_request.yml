@@ -1,0 +1,39 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+labels: [enhancement]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before submitting, please check that your idea is not already covered in an open issue or discussion.
+        If you have a question rather than a feature request, use [Discussions](https://github.com/KarlGrear/EDAI/discussions) instead.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the use case or pain point. What are you trying to do that you currently can't?
+      placeholder: I'm trying to... but currently...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe what you'd like to see added or changed.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any other approaches you've thought about or worked around?
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Screenshots, mockups, or examples from other tools that illustrate the idea.

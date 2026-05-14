@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- GitHub Actions workflows opt into Node.js 24 to resolve Node.js 20 deprecation warnings
+
 ## [1.0.0] - 2026-05-13
 
 ### Added

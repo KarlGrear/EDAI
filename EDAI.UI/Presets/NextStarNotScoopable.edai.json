@@ -1,0 +1,23 @@
+{
+  "edaiExportVersion": "1.0",
+  "exportedAt": "2026-05-14T00:00:00Z",
+  "configuration": {
+    "title": "Next Star Not Scoopable",
+    "description": "Warns to refuel when arriving at a star with 3 or more jumps remaining and the next destination is not scoopable.",
+    "categoryName": "Navigation",
+    "isEnabled": true,
+    "triggeringEvents": [ "FSDJump" ],
+    "triggerCondition": "|trigger.RemainingJumpsInRoute| >= 3",
+    "triggerTimeoutMs": 0,
+    "sendToAi": true,
+    "prompt": "The pilot just arrived in |trigger.StarSystem|. Plotted route: |navroute.Route|. Scoopable star classes are O, B, A, F, G, K, M. Find |trigger.StarSystem| in the Route array, then starting from the entry immediately after it, count how many consecutive stars are NOT scoopable before the first scoopable one. If the count is 0 respond with {\"announcement\": \"\"}. If the count is 1 respond with {\"announcement\": \"The next star is not scoopable, so gas up here.\"}. If the count is 2 or more respond with {\"announcement\": \"The next [N] stars are not scoopable, so gas up here.\"} replacing [N] with the count.",
+    "expectedResultsSchema": "{\"announcement\": \"\"}",
+    "displayTitle": false,
+    "announceTitle": false,
+    "displayFields": [ "|result.announcement|" ],
+    "displayCondition": "|result.announcement| != \"\"",
+    "announceFields": [ "|result.announcement|" ],
+    "announceCondition": "|result.announcement| != \"\"",
+    "showTrayNotification": false
+  }
+}

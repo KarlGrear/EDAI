@@ -38,4 +38,10 @@
     <ProjectReference Include="..\EDAI.Data\EDAI.Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Presets\**\*.edai.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
