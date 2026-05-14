@@ -31,10 +31,10 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore
-        run: dotnet restore EDAI.UI/EDAI.UI.csproj
+        run: dotnet restore EDAI.UI/EDAI.UI.csproj --runtime win-x64
 
       - name: Build
-        run: dotnet build EDAI.UI/EDAI.UI.csproj --configuration Release --no-restore
+        run: dotnet build EDAI.UI/EDAI.UI.csproj --configuration Release --runtime win-x64 --no-restore
 
       - name: Publish (self-contained single-file win-x64)
         run: >
