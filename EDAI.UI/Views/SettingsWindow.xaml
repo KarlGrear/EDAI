@@ -352,6 +352,71 @@
                 </ScrollViewer>
             </TabItem>
 
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <!-- SCRIPTING                                                       -->
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <TabItem Header="Scripting">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,0,0">
+                    <StackPanel Margin="0,14,0,0">
+
+                        <TextBlock TextWrapping="Wrap" Opacity="0.7" Margin="0,0,0,16"
+                                   Text="C# process scripts can run arbitrary code on your machine. These permissions are off by default. Only enable capabilities required by scripts you trust. Imported scripts that use capabilities not enabled here will fail to run." />
+
+                        <!-- File System -->
+                        <DockPanel Margin="0,0,0,12">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="Grants scripts access to System.IO — reading and writing files and directories. Required for scripts that read game data files beyond the built-in journal/aux file variables." />
+                            <CheckBox Content="Allow File System Access (System.IO)"
+                                      IsChecked="{Binding ScriptingAllowFileSystem}"
+                                      Style="{StaticResource EDAI.Form.CheckBox}" />
+                        </DockPanel>
+
+                        <!-- Network -->
+                        <DockPanel Margin="0,0,0,12">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="Grants scripts access to System.Net.Http — making HTTP requests. Required for scripts that call external web services or APIs." />
+                            <CheckBox Content="Allow Network Access (System.Net.Http)"
+                                      IsChecked="{Binding ScriptingAllowNetwork}"
+                                      Style="{StaticResource EDAI.Form.CheckBox}" />
+                        </DockPanel>
+
+                        <!-- Process Execution -->
+                        <DockPanel Margin="0,0,0,12">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="Grants scripts access to System.Diagnostics — launching external processes. Required for scripts that need to run other programs or shell commands." />
+                            <CheckBox Content="Allow Process Execution (System.Diagnostics)"
+                                      IsChecked="{Binding ScriptingAllowProcessExecution}"
+                                      Style="{StaticResource EDAI.Form.CheckBox}" />
+                        </DockPanel>
+
+                        <!-- Reflection -->
+                        <DockPanel Margin="0,0,0,12">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="Grants scripts access to System.Reflection — inspecting and invoking types dynamically. Required for advanced meta-programming scenarios. Use with caution." />
+                            <CheckBox Content="Allow Reflection (System.Reflection)"
+                                      IsChecked="{Binding ScriptingAllowReflection}"
+                                      Style="{StaticResource EDAI.Form.CheckBox}" />
+                        </DockPanel>
+
+                        <Separator Margin="0,8,0,16" />
+
+                        <!-- Session -->
+                        <TextBlock Text="Session"
+                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                   Margin="0,0,0,8" />
+                        <DockPanel Margin="0,0,0,8">
+                            <controls:HelpIcon DockPanel.Dock="Right"
+                                               HelpText="Session variables are shared across all pipelines and persisted in session.json next to the executable. Scripts read them via Session[&quot;key&quot;] and write via SetSession / DeleteSession / ClearSession. Templates use |session.key| tokens. Clearing resets all values to an empty object." />
+                            <Button Content="Clear Session"
+                                    Command="{Binding ClearSessionCommand}"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    HorizontalAlignment="Left" />
+                        </DockPanel>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
         </TabControl>
     </DockPanel>
 </Window>

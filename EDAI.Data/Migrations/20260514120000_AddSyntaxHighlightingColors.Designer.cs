@@ -3,6 +3,7 @@ using System;
 using EDAI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EDAI.Data.Migrations
 {
     [DbContext(typeof(EdaiDbContext))]
-    partial class EdaiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260514120000_AddSyntaxHighlightingColors")]
+    partial class AddSyntaxHighlightingColors
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.7");
@@ -296,9 +299,6 @@ namespace EDAI.Data.Migrations
                     b.Property<string>("SyntaxComment")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("SyntaxContextKeyword")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("SyntaxIdentifier")
                         .HasColumnType("TEXT");
 
@@ -311,9 +311,6 @@ namespace EDAI.Data.Migrations
                     b.Property<string>("SyntaxMethod")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("SyntaxModifier")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("SyntaxNumber")
                         .HasColumnType("TEXT");
 
@@ -323,11 +320,20 @@ namespace EDAI.Data.Migrations
                     b.Property<string>("SyntaxString")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("SyntaxTypeKeyword")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("SystemPersona")
                         .HasColumnType("TEXT");
+
+                    b.Property<double>("TestWindowHeight")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("TestWindowLeft")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("TestWindowTop")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("TestWindowWidth")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("Theme")
                         .IsRequired()
@@ -362,18 +368,6 @@ namespace EDAI.Data.Migrations
                         .HasColumnType("REAL");
 
                     b.Property<double>("WindowWidth")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("TestWindowHeight")
-                        .HasColumnType("REAL");
-
-                    b.Property<double?>("TestWindowLeft")
-                        .HasColumnType("REAL");
-
-                    b.Property<double?>("TestWindowTop")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("TestWindowWidth")
                         .HasColumnType("REAL");
 
                     b.HasKey("Id");

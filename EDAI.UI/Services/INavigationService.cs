@@ -7,6 +7,7 @@ public interface INavigationService
     void ShowEventConfigEdit(int? configId, Action? onClosed = null);
     void ShowCategoryManagement(Action? onClosed = null);
     void ShowTest(int? configId = null);
+    void ShowScriptDesigner();
     void ShowTheme();
     void ShowAbout();
     void ShowHistory();

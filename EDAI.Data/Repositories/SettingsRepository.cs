@@ -85,6 +85,22 @@ public sealed class SettingsRepository : ISettingsRepository
         TestWindowTop            = e.TestWindowTop,
         TestWindowWidth          = e.TestWindowWidth > 0 ? e.TestWindowWidth  : 900,
         TestWindowHeight         = e.TestWindowHeight > 0 ? e.TestWindowHeight : 680,
+        ScriptingAllowFileSystem       = e.ScriptingAllowFileSystem,
+        ScriptingAllowNetwork          = e.ScriptingAllowNetwork,
+        ScriptingAllowProcessExecution = e.ScriptingAllowProcessExecution,
+        ScriptingAllowReflection       = e.ScriptingAllowReflection,
+        SyntaxComment        = e.SyntaxComment,
+        SyntaxString         = e.SyntaxString,
+        SyntaxKeyword        = e.SyntaxKeyword,
+        SyntaxTypeKeyword    = e.SyntaxTypeKeyword,
+        SyntaxContextKeyword = e.SyntaxContextKeyword,
+        SyntaxModifier       = e.SyntaxModifier,
+        SyntaxMethod         = e.SyntaxMethod,
+        SyntaxNumber         = e.SyntaxNumber,
+        SyntaxPreprocessor   = e.SyntaxPreprocessor,
+        SyntaxIdentifier     = e.SyntaxIdentifier,
+        SyntaxLineNumber     = e.SyntaxLineNumber,
+        SyntaxBracketMatch   = e.SyntaxBracketMatch,
     };
 
     private static void ApplyToEntity(SettingsModel m, SettingEntity e)
@@ -126,5 +142,21 @@ public sealed class SettingsRepository : ISettingsRepository
         e.TestWindowTop          = m.TestWindowTop;
         e.TestWindowWidth        = m.TestWindowWidth;
         e.TestWindowHeight       = m.TestWindowHeight;
+        e.ScriptingAllowFileSystem       = m.ScriptingAllowFileSystem;
+        e.ScriptingAllowNetwork          = m.ScriptingAllowNetwork;
+        e.ScriptingAllowProcessExecution = m.ScriptingAllowProcessExecution;
+        e.ScriptingAllowReflection       = m.ScriptingAllowReflection;
+        e.SyntaxComment        = m.SyntaxComment;
+        e.SyntaxString         = m.SyntaxString;
+        e.SyntaxKeyword        = m.SyntaxKeyword;
+        e.SyntaxTypeKeyword    = m.SyntaxTypeKeyword;
+        e.SyntaxContextKeyword = m.SyntaxContextKeyword;
+        e.SyntaxModifier       = m.SyntaxModifier;
+        e.SyntaxMethod         = m.SyntaxMethod;
+        e.SyntaxNumber         = m.SyntaxNumber;
+        e.SyntaxPreprocessor   = m.SyntaxPreprocessor;
+        e.SyntaxIdentifier     = m.SyntaxIdentifier;
+        e.SyntaxLineNumber     = m.SyntaxLineNumber;
+        e.SyntaxBracketMatch   = m.SyntaxBracketMatch;
     }
 }

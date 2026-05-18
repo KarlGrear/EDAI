@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EDAI.Core.Journal;
 using EDAI.Core.Models;
+using EDAI.Core.Scripting;
 using EDAI.Core.TTS;
 using EDAI.Core.Interfaces;
 using EDAI.UI.Services;
@@ -20,6 +21,8 @@ public sealed partial class SettingsViewModel : ObservableObject
     private readonly VoiceCacheService _voiceCache;
     private readonly IFileDialogService _fileDialog;
     private readonly JournalPathOptions _journalOptions;
+    private readonly IScriptingService _scriptingService;
+    private readonly ISessionService _sessionService;
     private readonly ILogger<SettingsViewModel> _logger;
 
     // Set by the view so the ViewModel can show a confirmation dialog without referencing WPF types.
@@ -78,6 +81,12 @@ public sealed partial class SettingsViewModel : ObservableObject
     // ── Journal path ─────────────────────────────────────────────────────────
     [ObservableProperty] private string _journalPath = SettingsModel.DefaultJournalPath;
 
+    // ── Scripting permissions ────────────────────────────────────────────────
+    [ObservableProperty] private bool _scriptingAllowFileSystem;
+    [ObservableProperty] private bool _scriptingAllowNetwork;
+    [ObservableProperty] private bool _scriptingAllowProcessExecution;
+    [ObservableProperty] private bool _scriptingAllowReflection;
+
     // ── Collections ─────────────────────────────────────────────────────────
     public ObservableCollection<string> TtsEngines { get; } =
         ["Windows Speech (SAPI)", "Edge Neural Voices (Online)"];
@@ -107,14 +116,18 @@ public sealed partial class SettingsViewModel : ObservableObject
         VoiceCacheService voiceCache,
         IFileDialogService fileDialog,
         JournalPathOptions journalOptions,
+        IScriptingService scriptingService,
+        ISessionService sessionService,
         ILogger<SettingsViewModel> logger)
     {
-        _repo           = repo;
-        _tts            = tts;
-        _voiceCache     = voiceCache;
-        _fileDialog     = fileDialog;
-        _journalOptions = journalOptions;
-        _logger         = logger;
+        _repo             = repo;
+        _tts              = tts;
+        _voiceCache       = voiceCache;
+        _fileDialog       = fileDialog;
+        _journalOptions   = journalOptions;
+        _scriptingService = scriptingService;
+        _sessionService   = sessionService;
+        _logger           = logger;
     }
 
     public async Task LoadAsync()
@@ -142,6 +155,11 @@ public sealed partial class SettingsViewModel : ObservableObject
         SelectedFontFamily       = s.FontFamily;
         FontSize                 = s.FontSize > 0 ? s.FontSize : 14.0;
         JournalPath              = s.JournalPath;
+
+        ScriptingAllowFileSystem       = s.ScriptingAllowFileSystem;
+        ScriptingAllowNetwork          = s.ScriptingAllowNetwork;
+        ScriptingAllowProcessExecution = s.ScriptingAllowProcessExecution;
+        ScriptingAllowReflection       = s.ScriptingAllowReflection;
 
         // Engine
         _originalProvider   = s.TtsProvider;
@@ -263,7 +281,20 @@ public sealed partial class SettingsViewModel : ObservableObject
         settings.EdgeTtsRate     = EdgeTtsRate;
         settings.EdgeTtsPitch    = EdgeTtsPitch;
 
+        settings.ScriptingAllowFileSystem       = ScriptingAllowFileSystem;
+        settings.ScriptingAllowNetwork          = ScriptingAllowNetwork;
+        settings.ScriptingAllowProcessExecution = ScriptingAllowProcessExecution;
+        settings.ScriptingAllowReflection       = ScriptingAllowReflection;
+
         await _repo.SaveAsync(settings);
+
+        _scriptingService.UpdatePermissions(new ScriptingPermissions
+        {
+            FileSystem       = ScriptingAllowFileSystem,
+            Network          = ScriptingAllowNetwork,
+            ProcessExecution = ScriptingAllowProcessExecution,
+            Reflection       = ScriptingAllowReflection,
+        });
 
         // Apply to composite
         _originalProvider        = settings.TtsProvider;
@@ -306,6 +337,18 @@ public sealed partial class SettingsViewModel : ObservableObject
         _logger.LogInformation("Voice Cache Cleared. Removed {Files} file{FS} and {Rows} database {RS}.",
             files, files == 1 ? "" : "s",
             rows,  rows  == 1 ? "entry" : "entries");
+    }
+
+    [RelayCommand]
+    private void ClearSession()
+    {
+        var confirmed = ShowConfirmation?.Invoke(
+            "This will clear all values from session.json. Scripts that read session variables will see an empty object until they write new values. Continue?",
+            "Clear Session") ?? false;
+        if (!confirmed) return;
+
+        _sessionService.Clear();
+        _logger.LogInformation("Session cleared.");
     }
 
     [RelayCommand]

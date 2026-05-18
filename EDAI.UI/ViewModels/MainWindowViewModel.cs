@@ -130,6 +130,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private void NavigateToTest() => _navigation.ShowTest();
 
     [RelayCommand]
+    private void NavigateToScriptDesigner() => _navigation.ShowScriptDesigner();
+
+    [RelayCommand]
     private void NavigateToTheme() => _navigation.ShowTheme();
 
     [RelayCommand]

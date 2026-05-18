@@ -40,13 +40,12 @@ jobs:
       - name: Build
         run: dotnet build EDAI.UI/EDAI.UI.csproj --configuration Release --runtime win-x64 --no-restore
 
-      - name: Publish (self-contained single-file win-x64)
+      - name: Publish (self-contained folder win-x64)
         run: >
           dotnet publish EDAI.UI/EDAI.UI.csproj
           --configuration Release
           --runtime win-x64
           --self-contained true
-          -p:PublishSingleFile=true
           --output ./publish
           --no-restore
 
@@ -76,12 +75,16 @@ jobs:
           files-folder-filter: exe
           files-folder-recurse: true
 
-      - name: Zip publish output
-        shell: pwsh
+      - name: Install vpk
+        run: dotnet tool install -g vpk
+
+      - name: Pack with Velopack
         run: >
-          Compress-Archive
-          -Path ./publish/*
-          -DestinationPath "EDAI.UI-${{ steps.get_version.outputs.version }}-win-x64.zip"
+          vpk pack
+          --packId EDAI
+          --packVersion ${{ steps.get_version.outputs.version }}
+          --packDir ./publish
+          --mainExe EDAI.UI.exe
 
       - name: Extract changelog
         id: changelog
@@ -104,4 +107,7 @@ jobs:
           name: ${{ github.ref_name }}
           body: ${{ steps.changelog.outputs.body }}
           prerelease: ${{ contains(github.ref_name, '-') }}
-          files: EDAI.UI-${{ steps.get_version.outputs.version }}-win-x64.zip
+          files: |
+            ./releases/EDAI-Setup.exe
+            ./releases/*.nupkg
+            ./releases/RELEASES

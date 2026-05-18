@@ -39,6 +39,12 @@
                         Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}">
                     <materialDesign:PackIcon Kind="TestTube" />
                 </Button>
+                <Button Command="{Binding NavigateToScriptDesignerCommand}"
+                        Style="{StaticResource MaterialDesignToolButton}"
+                        ToolTip="Script Designer"
+                        Foreground="{DynamicResource EDAI.Brush.ToolbarForeground}">
+                    <materialDesign:PackIcon Kind="CodeBraces" />
+                </Button>
                 <Button Command="{Binding ShowHistoryCommand}"
                         Style="{StaticResource MaterialDesignToolButton}"
                         ToolTip="Response History"

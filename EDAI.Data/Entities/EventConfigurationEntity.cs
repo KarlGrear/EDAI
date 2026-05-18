@@ -19,10 +19,15 @@ public sealed class EventConfigurationEntity
     public List<string> AnnounceFields { get; set; } = [];
     public bool ShowTrayNotification { get; set; }
     public bool SendToAi { get; set; } = true;
+    public string ProcessingType { get; set; } = "None";
+    public string? ProcessScript { get; set; }
     public string? ModelOverride { get; set; }
     public string? TriggerCondition { get; set; }
+    public string? TriggerConditionScript { get; set; }
     public string? DisplayCondition { get; set; }
+    public string? DisplayConditionScript { get; set; }
     public string? AnnounceCondition { get; set; }
+    public string? AnnounceConditionScript { get; set; }
     public long TriggerTimeoutMs { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

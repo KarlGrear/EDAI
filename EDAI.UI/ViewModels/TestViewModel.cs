@@ -151,24 +151,29 @@ public sealed partial class TestViewModel : ObservableValidator
             var lines = InputJson
                 .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
+            // Reload the selected config so edits made while this window is open are picked up.
+            EventConfigurationModel? configToUse = SelectedConfig != null
+                ? await _configRepo.GetByIdAsync(SelectedConfig.Id) ?? SelectedConfig
+                : null;
+
             bool triggerDispatched = false;
             foreach (var line in lines)
             {
                 var parsed = _parser.TryParse(line);
                 if (parsed == null) continue;
 
-                if (SelectedConfig != null)
+                if (configToUse != null)
                 {
                     if (!triggerDispatched)
                     {
                         // First event is the trigger — start the pipeline.
-                        await _orchestrator.ProcessWithConfigAsync(parsed, SelectedConfig);
+                        await _orchestrator.ProcessWithConfigAsync(parsed, configToUse);
                         triggerDispatched = true;
 
                         // The pipeline consumer runs on a thread-pool thread via Task.Run.
                         // Yield briefly so it can reach the SecondaryEventCollector
                         // registration point before we feed subsequent events to it.
-                        if (SelectedConfig.SecondaryEvents.Count > 0 && SelectedConfig.SecondaryWaitTimeMs > 0)
+                        if (configToUse.SecondaryEvents.Count > 0 && configToUse.SecondaryWaitTimeMs > 0)
                             await Task.Delay(50);
                     }
                     else

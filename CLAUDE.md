@@ -69,3 +69,90 @@ The auth tokens must go in **URL query parameters**, not HTTP headers — WinHTT
 
 ## Out of Scope
 Course plotting, exobiology tracking, fleet carrier management, trade route optimization, multi-commander, cloud sync, any web/API server.
+
+---
+
+## Scripting Engine — Planned Feature (API Contract Locked)
+
+C# scripting via Roslyn (`Microsoft.CodeAnalysis.CSharp.Scripting`). Two script types only — do not add others without revisiting this design.
+
+### Two Script Types
+
+**Condition script** — replaces any condition field (`TriggerCondition`, `DisplayCondition`, `AnnounceCondition`). Returns `bool`. Each condition field independently accepts either a template expression (existing) or a script — both coexist, neither replaces the other.
+
+**Process script** — replaces the AI call. `SendToAi: true/false` becomes `ProcessingType` enum: `None | Ai | Script`. Process script is `void` and populates `Result` as a side effect. `Result` is serialized to flat JSON and fed to the template engine identically to an AI response — `|result.X|` tokens work unchanged.
+
+### Globals (injected into every script)
+
+| Variable | Type | Source |
+|---|---|---|
+| `Trigger` | `JsonNode` | The journal event that fired |
+| `Secondary` | `JsonArray` | Collected secondary events |
+| `NavRoute` | `JsonNode` | NavRoute.json |
+| `Status` | `JsonNode` | Status.json |
+| `Market` | `JsonNode` | Market.json |
+| `Outfitting` | `JsonNode` | Outfitting.json |
+| `Shipyard` | `JsonNode` | Shipyard.json |
+| `ShipLocker` | `JsonNode` | ShipLocker.json |
+| `ModulesInfo` | `JsonNode` | ModulesInfo.json |
+| `Session` | `JsonNode` | session.json — **always read fresh from disk at each access** |
+| `Result` | `ScriptResult` | **Process scripts only** |
+
+Aux file globals are `null` if the file doesn't exist — scripts must null-check.
+`Session` is also `null` when session.json doesn't exist yet. Unlike the other aux globals (snapshots taken at script start), `Session` re-reads the file on every property access so concurrent pipeline writes are immediately visible.
+
+**Session write methods (available in all scripts):**
+
+| Method | Description |
+|---|---|
+| `SetSession(string key, JsonNode? value)` | Set a key; pass null to remove it |
+| `DeleteSession(string key)` | Remove a key if present |
+| `ClearSession()` | Clear all values |
+
+Templates access session via `|session.key|` tokens, identical to `|status.FireGroup|` etc.
+
+### ScriptResult
+
+```csharp
+public sealed class ScriptResult
+{
+    public string? Announcement { get; set; }
+    public string? Display { get; set; }
+    public string? this[string key] { get; set; } // arbitrary named fields
+}
+```
+
+Serializes to flat JSON so `|result.Announcement|`, `|result.Display|`, and `|result.anyCustomField|` all resolve via the existing template engine without changes.
+
+### Auto-injected Namespaces (always available)
+`System` · `System.Collections.Generic` · `System.Linq` · `System.Text` · `System.Text.Json` · `System.Text.Json.Nodes`
+
+### Permission-gated Namespaces (App Settings — all off by default)
+| Permission | Namespace |
+|---|---|
+| File System | `System.IO` |
+| Network | `System.Net.Http` |
+| Process Execution | `System.Diagnostics.Process` |
+| Reflection | `System.Reflection` + must pass syntax walker |
+
+### Syntax Walker — Always Blocked
+Run against script source before compilation. Reject on any of:
+- `.Assembly` member access
+- `typeof(X).GetMethod/GetProperty/GetField/GetConstructor/GetMembers/InvokeMember`
+- `Type.GetType(...)` · `Assembly.Load/LoadFrom/LoadFile`
+- `Activator.CreateInstance` · `AppDomain.CurrentDomain`
+- `dynamic` keyword · `unsafe` blocks · `extern` / `DllImport`
+
+### Export Format (backwards compatible)
+New fields added alongside existing ones — never replace:
+```json
+"processingType": "Script",
+"processScript": "...",
+"triggerConditionScript": null,
+"displayConditionScript": null,
+"announceConditionScript": null
+```
+If `processingType` is absent, treat as `Ai` when `sendToAi` is true, else `None`. Existing configs load unchanged.
+
+### Script Designer (planned UI)
+Separate form: AvalonEdit surface + Roslyn background compilation + error squiggles + globals reference panel + test execution against real journal data. Basic script text entry in the existing config edit view comes first; designer is a follow-on.

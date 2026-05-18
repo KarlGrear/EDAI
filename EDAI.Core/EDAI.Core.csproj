@@ -13,10 +13,12 @@
     <Folder Include="TTS\" />
     <Folder Include="OpenAI\" />
     <Folder Include="Pipeline\" />
+    <Folder Include="Scripting\" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="JsonPath.Net" Version="3.0.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.7" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.7" />
     <PackageReference Include="NAudio" Version="2.2.1" />

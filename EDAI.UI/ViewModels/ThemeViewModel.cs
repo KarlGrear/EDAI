@@ -5,6 +5,7 @@ using Color = System.Windows.Media.Color;
 using CommunityToolkit.Mvvm.Input;
 using EDAI.Core.Interfaces;
 using EDAI.Core.Models;
+using EDAI.UI.Services;
 
 namespace EDAI.UI.ViewModels;
 
@@ -12,10 +13,8 @@ public sealed partial class ThemeViewModel : ObservableObject
 {
     private readonly ISettingsRepository _repo;
 
-    // Snapshot of settings when the window opened — used to revert on cancel
     private SettingsModel _original = new();
-    // Live copy mutated for preview
-    private SettingsModel _preview = new();
+    private SettingsModel _preview  = new();
 
     public ObservableCollection<string> Elements { get; } =
     [
@@ -29,18 +28,35 @@ public sealed partial class ThemeViewModel : ObservableObject
         "Event Background",
         "Control Border",
         "Control Hover",
+        "Code: Comment",
+        "Code: String / Char",
+        "Code: Keyword",
+        "Code: Type Keyword",
+        "Code: Context Keyword",
+        "Code: Modifier",
+        "Code: Method / Function",
+        "Code: Number",
+        "Code: Preprocessor",
+        "Code: Variable (Plain Text)",
+        "Code: Line Numbers",
+        "Code: Bracket Highlight",
     ];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasCustomColor))]
+    [NotifyPropertyChangedFor(nameof(IsSyntaxElement))]
+    [NotifyPropertyChangedFor(nameof(PreviewTabIndex))]
     private string _selectedElement = "Accent Color";
 
     [ObservableProperty] private Color _currentColor = Color.FromRgb(0xFF, 0x6D, 0x00);
 
-    // True when the selected element has a custom override (Reset is meaningful)
     public bool HasCustomColor => GetCurrentElementHex(_preview) != null || SelectedElement == "Accent Color";
+    public bool IsSyntaxElement => SelectedElement.StartsWith("Code:");
+    public int  PreviewTabIndex => IsSyntaxElement ? 1 : 0;
 
     public event EventHandler? CloseRequested;
+    // Fired when a syntax color changes so the code preview editor can redraw
+    public event EventHandler? SyntaxColorUpdated;
 
     public ThemeViewModel(ISettingsRepository repo)
     {
@@ -50,42 +66,41 @@ public sealed partial class ThemeViewModel : ObservableObject
     public async Task LoadAsync()
     {
         _original = await _repo.GetAsync();
-        // Deep-copy into preview
-        _preview = CopySettings(_original);
+        _preview  = CopySettings(_original);
         SyncPickerFromElement();
     }
 
-    // When the element dropdown changes, pull the color for that element into the picker
     partial void OnSelectedElementChanged(string value)
     {
         SyncPickerFromElement();
         OnPropertyChanged(nameof(HasCustomColor));
     }
 
-    // When the picker changes, apply immediately as a live preview
     partial void OnCurrentColorChanged(Color value)
     {
         if (_preview == null) return;
         SetCurrentElementHex(_preview, ColorToHex(value));
         App.ApplyAppearance(_preview);
         OnPropertyChanged(nameof(HasCustomColor));
+
+        if (IsSyntaxElement)
+            SyntaxColorUpdated?.Invoke(this, EventArgs.Empty);
     }
 
     [RelayCommand]
     private void ResetElement()
     {
         if (SelectedElement == "Accent Color")
-        {
-            // Reset accent to default EDAI orange
             _preview.PrimaryColor = "#FF6D00";
-        }
         else
-        {
             SetCurrentElementHex(_preview, null);
-        }
+
         App.ApplyAppearance(_preview);
         SyncPickerFromElement();
         OnPropertyChanged(nameof(HasCustomColor));
+
+        if (IsSyntaxElement)
+            SyntaxColorUpdated?.Invoke(this, EventArgs.Empty);
     }
 
     [RelayCommand]
@@ -99,7 +114,6 @@ public sealed partial class ThemeViewModel : ObservableObject
     [RelayCommand]
     private void Cancel()
     {
-        // Revert to original appearance
         App.ApplyAppearance(_original);
         CloseRequested?.Invoke(this, EventArgs.Empty);
     }
@@ -108,37 +122,35 @@ public sealed partial class ThemeViewModel : ObservableObject
 
     private void SyncPickerFromElement()
     {
-        var hex = SelectedElement switch
-        {
-            "Accent Color"       => _preview.PrimaryColor,
-            "App Background"     => _preview.CustomBackgroundColor,
-            "App Text"           => _preview.CustomForegroundColor,
-            "Toolbar Background" => _preview.ToolbarBackground,
-            "Toolbar Text"       => _preview.ToolbarForeground,
-            "Button Color"       => _preview.ButtonBackground,
-            "Button Text"        => _preview.ButtonForeground,
-            "Event Background"   => _preview.ControlBackground,
-            "Control Border"     => _preview.ControlBorderColor,
-            "Control Hover"      => _preview.ControlHoverBackground,
-            _                    => null,
-        };
+        var hex = GetCurrentElementHex(_preview);
 
-        // Fallback to a representative color when no custom override is set
         if (hex == null)
         {
             hex = SelectedElement switch
             {
-                "Accent Color"       => _preview.PrimaryColor,
-                "App Background"     => "#121212",
-                "App Text"           => "#FFFFFF",
-                "Toolbar Background" => _preview.PrimaryColor,
-                "Toolbar Text"       => "#FFFFFF",
-                "Button Color"       => _preview.PrimaryColor,
-                "Button Text"        => "#FFFFFF",
-                "Event Background"   => "#1E1E1E",
-                "Control Border"     => "#606060",
-                "Control Hover"      => "#909090",
-                _                    => "#FF6D00",
+                "Accent Color"             => _preview.PrimaryColor,
+                "App Background"           => "#121212",
+                "App Text"                 => "#FFFFFF",
+                "Toolbar Background"       => _preview.PrimaryColor,
+                "Toolbar Text"             => "#FFFFFF",
+                "Button Color"             => _preview.PrimaryColor,
+                "Button Text"             => "#FFFFFF",
+                "Event Background"         => "#1E1E1E",
+                "Control Border"           => "#606060",
+                "Control Hover"            => "#909090",
+                "Code: Comment"               => ScriptEditorHighlighting.DefaultComment,
+                "Code: String / Char"         => ScriptEditorHighlighting.DefaultString,
+                "Code: Keyword"               => ScriptEditorHighlighting.DefaultKeyword,
+                "Code: Type Keyword"          => ScriptEditorHighlighting.DefaultTypeKeyword,
+                "Code: Context Keyword"       => ScriptEditorHighlighting.DefaultContextKeyword,
+                "Code: Modifier"              => ScriptEditorHighlighting.DefaultModifier,
+                "Code: Method / Function"     => ScriptEditorHighlighting.DefaultMethod,
+                "Code: Number"                => ScriptEditorHighlighting.DefaultNumber,
+                "Code: Preprocessor"          => ScriptEditorHighlighting.DefaultPreprocessor,
+                "Code: Variable (Plain Text)" => ScriptEditorHighlighting.DefaultIdentifier,
+                "Code: Line Numbers"          => ScriptEditorHighlighting.DefaultLineNumber,
+                "Code: Bracket Highlight"     => ScriptEditorHighlighting.DefaultBracketMatch,
+                _                          => "#FF6D00",
             };
         }
 
@@ -147,33 +159,57 @@ public sealed partial class ThemeViewModel : ObservableObject
 
     private string? GetCurrentElementHex(SettingsModel s) => SelectedElement switch
     {
-        "Accent Color"       => null,   // accent is always "set"
-        "App Background"     => s.CustomBackgroundColor,
-        "App Text"           => s.CustomForegroundColor,
-        "Toolbar Background" => s.ToolbarBackground,
-        "Toolbar Text"       => s.ToolbarForeground,
-        "Button Color"       => s.ButtonBackground,
-        "Button Text"        => s.ButtonForeground,
-        "Event Background"   => s.ControlBackground,
-        "Control Border"     => s.ControlBorderColor,
-        "Control Hover"      => s.ControlHoverBackground,
-        _                    => null,
+        "Accent Color"                => null,
+        "App Background"              => s.CustomBackgroundColor,
+        "App Text"                    => s.CustomForegroundColor,
+        "Toolbar Background"          => s.ToolbarBackground,
+        "Toolbar Text"                => s.ToolbarForeground,
+        "Button Color"                => s.ButtonBackground,
+        "Button Text"                 => s.ButtonForeground,
+        "Event Background"            => s.ControlBackground,
+        "Control Border"              => s.ControlBorderColor,
+        "Control Hover"               => s.ControlHoverBackground,
+        "Code: Comment"               => s.SyntaxComment,
+        "Code: String / Char"         => s.SyntaxString,
+        "Code: Keyword"               => s.SyntaxKeyword,
+        "Code: Type Keyword"          => s.SyntaxTypeKeyword,
+        "Code: Context Keyword"       => s.SyntaxContextKeyword,
+        "Code: Modifier"              => s.SyntaxModifier,
+        "Code: Method / Function"     => s.SyntaxMethod,
+        "Code: Number"                => s.SyntaxNumber,
+        "Code: Preprocessor"          => s.SyntaxPreprocessor,
+        "Code: Variable (Plain Text)" => s.SyntaxIdentifier,
+        "Code: Line Numbers"          => s.SyntaxLineNumber,
+        "Code: Bracket Highlight"     => s.SyntaxBracketMatch,
+        _                             => null,
     };
 
     private void SetCurrentElementHex(SettingsModel s, string? hex)
     {
         switch (SelectedElement)
         {
-            case "Accent Color":        s.PrimaryColor            = hex ?? "#FF6D00"; break;
-            case "App Background":      s.CustomBackgroundColor   = hex; break;
-            case "App Text":            s.CustomForegroundColor   = hex; break;
-            case "Toolbar Background":  s.ToolbarBackground       = hex; break;
-            case "Toolbar Text":        s.ToolbarForeground       = hex; break;
-            case "Button Color":        s.ButtonBackground        = hex; break;
-            case "Button Text":         s.ButtonForeground        = hex; break;
-            case "Event Background":    s.ControlBackground       = hex; break;
-            case "Control Border":      s.ControlBorderColor      = hex; break;
-            case "Control Hover":       s.ControlHoverBackground  = hex; break;
+            case "Accent Color":                s.PrimaryColor           = hex ?? "#FF6D00"; break;
+            case "App Background":              s.CustomBackgroundColor  = hex; break;
+            case "App Text":                    s.CustomForegroundColor  = hex; break;
+            case "Toolbar Background":          s.ToolbarBackground      = hex; break;
+            case "Toolbar Text":                s.ToolbarForeground      = hex; break;
+            case "Button Color":                s.ButtonBackground       = hex; break;
+            case "Button Text":                 s.ButtonForeground       = hex; break;
+            case "Event Background":            s.ControlBackground      = hex; break;
+            case "Control Border":              s.ControlBorderColor     = hex; break;
+            case "Control Hover":               s.ControlHoverBackground = hex; break;
+            case "Code: Comment":               s.SyntaxComment        = hex; break;
+            case "Code: String / Char":         s.SyntaxString         = hex; break;
+            case "Code: Keyword":               s.SyntaxKeyword        = hex; break;
+            case "Code: Type Keyword":          s.SyntaxTypeKeyword    = hex; break;
+            case "Code: Context Keyword":       s.SyntaxContextKeyword = hex; break;
+            case "Code: Modifier":              s.SyntaxModifier       = hex; break;
+            case "Code: Method / Function":     s.SyntaxMethod         = hex; break;
+            case "Code: Number":                s.SyntaxNumber         = hex; break;
+            case "Code: Preprocessor":          s.SyntaxPreprocessor   = hex; break;
+            case "Code: Variable (Plain Text)": s.SyntaxIdentifier     = hex; break;
+            case "Code: Line Numbers":          s.SyntaxLineNumber     = hex; break;
+            case "Code: Bracket Highlight":     s.SyntaxBracketMatch   = hex; break;
         }
     }
 
@@ -204,6 +240,22 @@ public sealed partial class ThemeViewModel : ObservableObject
         WindowLeft               = src.WindowLeft,
         WindowTop                = src.WindowTop,
         IsMaximized              = src.IsMaximized,
+        ScriptingAllowFileSystem       = src.ScriptingAllowFileSystem,
+        ScriptingAllowNetwork          = src.ScriptingAllowNetwork,
+        ScriptingAllowProcessExecution = src.ScriptingAllowProcessExecution,
+        ScriptingAllowReflection       = src.ScriptingAllowReflection,
+        SyntaxComment        = src.SyntaxComment,
+        SyntaxString         = src.SyntaxString,
+        SyntaxKeyword        = src.SyntaxKeyword,
+        SyntaxTypeKeyword    = src.SyntaxTypeKeyword,
+        SyntaxContextKeyword = src.SyntaxContextKeyword,
+        SyntaxModifier       = src.SyntaxModifier,
+        SyntaxMethod         = src.SyntaxMethod,
+        SyntaxNumber         = src.SyntaxNumber,
+        SyntaxPreprocessor   = src.SyntaxPreprocessor,
+        SyntaxIdentifier     = src.SyntaxIdentifier,
+        SyntaxLineNumber     = src.SyntaxLineNumber,
+        SyntaxBracketMatch   = src.SyntaxBracketMatch,
     };
 
     private static string ColorToHex(Color c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
@@ -213,9 +265,7 @@ public sealed partial class ThemeViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(hex)) return null;
         try
         {
-            var c = (System.Windows.Media.Color)
-                System.Windows.Media.ColorConverter.ConvertFromString(hex)!;
-            return c;
+            return (Color)System.Windows.Media.ColorConverter.ConvertFromString(hex)!;
         }
         catch { return null; }
     }

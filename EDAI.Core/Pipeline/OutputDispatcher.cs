@@ -1,6 +1,8 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using EDAI.Core.Interfaces;
 using EDAI.Core.Models;
+using EDAI.Core.Scripting;
 using Microsoft.Extensions.Logging;
 
 namespace EDAI.Core.Pipeline;
@@ -20,6 +22,8 @@ public sealed class OutputDispatcher : IOutputDispatcher
     private readonly IResponseLogRepository _logRepo;
     private readonly ISessionHistoryRepository _sessionRepo;
     private readonly IJournalAuxFileReader _auxReader;
+    private readonly IScriptingService _scriptingService;
+    private readonly ISessionService _sessionService;
     private readonly ILogger<OutputDispatcher> _logger;
 
     public event EventHandler<AiResponseReceivedEventArgs>? ResponseReceived;
@@ -30,14 +34,18 @@ public sealed class OutputDispatcher : IOutputDispatcher
         IResponseLogRepository logRepo,
         ISessionHistoryRepository sessionRepo,
         IJournalAuxFileReader auxReader,
+        IScriptingService scriptingService,
+        ISessionService sessionService,
         ILogger<OutputDispatcher> logger)
     {
-        _tts        = tts;
-        _actionQueue = actionQueue;
-        _logRepo    = logRepo;
-        _sessionRepo = sessionRepo;
-        _auxReader  = auxReader;
-        _logger     = logger;
+        _tts              = tts;
+        _actionQueue      = actionQueue;
+        _logRepo          = logRepo;
+        _sessionRepo      = sessionRepo;
+        _auxReader        = auxReader;
+        _scriptingService = scriptingService;
+        _sessionService   = sessionService;
+        _logger           = logger;
     }
 
     /// <summary>
@@ -66,8 +74,19 @@ public sealed class OutputDispatcher : IOutputDispatcher
         var secondaryJson = context.SecondaryJson;
 
         // ── 1. Display ────────────────────────────────────────────────────────
-        var showDisplay = ConditionEvaluator.Evaluate(
-            context.Config.DisplayCondition, triggerJson, resultJson, _auxReader.Read, secondaryJson);
+        bool showDisplay;
+        if (!string.IsNullOrWhiteSpace(context.Config.DisplayConditionScript))
+        {
+            var globals = BuildScriptGlobals(context);
+            showDisplay = await _scriptingService
+                .EvaluateConditionAsync(context.Config.DisplayConditionScript, globals, ct)
+                .ConfigureAwait(false);
+        }
+        else
+        {
+            showDisplay = ConditionEvaluator.Evaluate(
+                context.Config.DisplayCondition, triggerJson, resultJson, _auxReader.Read, secondaryJson);
+        }
 
         if (showDisplay && (!string.IsNullOrWhiteSpace(parsed.DisplayedOutput) || context.Config.DisplayTitle))
         {
@@ -85,8 +104,19 @@ public sealed class OutputDispatcher : IOutputDispatcher
         }
 
         // ── 2. Announce (awaited — next action waits for speech to finish) ────
-        var doAnnounce = ConditionEvaluator.Evaluate(
-            context.Config.AnnounceCondition, triggerJson, resultJson, _auxReader.Read, secondaryJson);
+        bool doAnnounce;
+        if (!string.IsNullOrWhiteSpace(context.Config.AnnounceConditionScript))
+        {
+            var globals = BuildScriptGlobals(context);
+            doAnnounce = await _scriptingService
+                .EvaluateConditionAsync(context.Config.AnnounceConditionScript, globals, ct)
+                .ConfigureAwait(false);
+        }
+        else
+        {
+            doAnnounce = ConditionEvaluator.Evaluate(
+                context.Config.AnnounceCondition, triggerJson, resultJson, _auxReader.Read, secondaryJson);
+        }
 
         if (doAnnounce && !string.IsNullOrWhiteSpace(parsed.AnnouncedOutput))
         {
@@ -135,5 +165,38 @@ public sealed class OutputDispatcher : IOutputDispatcher
         {
             _logger.LogWarning(ex, "Failed to write response log");
         }
+    }
+
+    private ScriptGlobals BuildScriptGlobals(PipelineContext context)
+    {
+        static JsonNode? ParseOrNull(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json)) return null;
+            try { return JsonNode.Parse(json); } catch { return null; }
+        }
+
+        JsonArray? secondaryArray = null;
+        if (context.SecondaryEvents.Count > 0)
+        {
+            secondaryArray = [];
+            foreach (var ev in context.SecondaryEvents)
+            {
+                var node = ParseOrNull(ev.RawJson);
+                if (node != null) secondaryArray.Add(node);
+            }
+        }
+
+        return new ScriptGlobals(_sessionService)
+        {
+            Trigger     = ParseOrNull(context.TriggeringEvent.RawJson),
+            Secondary   = secondaryArray,
+            NavRoute    = ParseOrNull(_auxReader.Read("navroute")),
+            Status      = ParseOrNull(_auxReader.Read("status")),
+            Market      = ParseOrNull(_auxReader.Read("market")),
+            Outfitting  = ParseOrNull(_auxReader.Read("outfitting")),
+            Shipyard    = ParseOrNull(_auxReader.Read("shipyard")),
+            ShipLocker  = ParseOrNull(_auxReader.Read("shipLocker")),
+            ModulesInfo = ParseOrNull(_auxReader.Read("modulesinfo")),
+        };
     }
 }

@@ -49,4 +49,24 @@ public sealed class SettingsModel
     public double? TestWindowTop { get; set; }
     public double TestWindowWidth { get; set; } = 900;
     public double TestWindowHeight { get; set; } = 680;
+
+    // ── Scripting permissions ────────────────────────────────────────────────
+    public bool ScriptingAllowFileSystem { get; set; }
+    public bool ScriptingAllowNetwork { get; set; }
+    public bool ScriptingAllowProcessExecution { get; set; }
+    public bool ScriptingAllowReflection { get; set; }
+
+    // ── Script editor syntax colors ──────────────────────────────────────────
+    public string? SyntaxComment       { get; set; }
+    public string? SyntaxString        { get; set; }
+    public string? SyntaxKeyword       { get; set; }
+    public string? SyntaxTypeKeyword   { get; set; }
+    public string? SyntaxContextKeyword{ get; set; }
+    public string? SyntaxModifier      { get; set; }
+    public string? SyntaxMethod        { get; set; }
+    public string? SyntaxNumber        { get; set; }
+    public string? SyntaxPreprocessor  { get; set; }
+    public string? SyntaxIdentifier    { get; set; }
+    public string? SyntaxLineNumber    { get; set; }
+    public string? SyntaxBracketMatch  { get; set; }
 }

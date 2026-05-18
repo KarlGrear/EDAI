@@ -12,6 +12,7 @@ using EDAI.Core.Logging;
 using EDAI.Core.Models;
 using EDAI.Core.OpenAI;
 using EDAI.Core.Pipeline;
+using EDAI.Core.Scripting;
 using EDAI.Core.TTS;
 using EDAI.Data;
 using EDAI.Data.Repositories;
@@ -77,6 +78,15 @@ public partial class App : Application
         journalPathOptions.Path = settings.JournalPath;
 
         ApplyAppearance(settings);
+
+        var scriptingService = _services.GetRequiredService<IScriptingService>();
+        scriptingService.UpdatePermissions(new ScriptingPermissions
+        {
+            FileSystem       = settings.ScriptingAllowFileSystem,
+            Network          = settings.ScriptingAllowNetwork,
+            ProcessExecution = settings.ScriptingAllowProcessExecution,
+            Reflection       = settings.ScriptingAllowReflection,
+        });
 
         var composite = _services.GetRequiredService<CompositeTtsService>();
         composite.ActiveProvider = settings.TtsProvider;
@@ -275,7 +285,12 @@ public partial class App : Application
         sc.AddSingleton<JournalPathOptions>();
         sc.AddSingleton<IJournalParser, JournalParser>();
         sc.AddSingleton<IJournalWatcher, JournalWatcher>();
-        sc.AddSingleton<IJournalAuxFileReader, JournalAuxFileReader>();
+        sc.AddSingleton<JournalAuxFileReader>();
+        sc.AddSingleton<ISessionService, SessionService>();
+        sc.AddSingleton<IJournalAuxFileReader>(sp =>
+            new CompositeAuxReader(
+                sp.GetRequiredService<JournalAuxFileReader>(),
+                sp.GetRequiredService<ISessionService>()));
         sc.AddSingleton<ITriggerMatcher, TriggerMatcher>();
         sc.AddSingleton<IPromptBuilder, PromptBuilder>();
         sc.AddSingleton<IOpenAIService, OpenAIService>();
@@ -296,6 +311,7 @@ public partial class App : Application
         sc.AddSingleton<IOutputDispatcher, OutputDispatcher>();
         sc.AddSingleton<IPipelineOrchestrator, PipelineOrchestrator>();
         sc.AddSingleton<IConfigExportService, ConfigExportService>();
+        sc.AddSingleton<IScriptingService, ScriptingService>();
 
         // UI — navigation, ViewModels, Windows
         sc.AddSingleton<INavigationService, NavigationService>();
@@ -309,6 +325,8 @@ public partial class App : Application
         sc.AddTransient<CategoryManagementWindow>();
         sc.AddTransient<EventConfigEditViewModel>();
         sc.AddTransient<EventConfigEditWindow>();
+        sc.AddTransient<ScriptDesignerViewModel>();
+        sc.AddTransient<ScriptDesignerWindow>();
         sc.AddTransient<EventConfigSelectionViewModel>();
         sc.AddTransient<EventConfigSelectionWindow>();
         sc.AddTransient<TestViewModel>();
@@ -480,6 +498,9 @@ public partial class App : Application
 
         foreach (Window w in Current.Windows)
             ApplyFontToWindow(w);
+
+        // ── Script editor syntax colors ───────────────────────────────────────
+        EDAI.UI.Services.ScriptEditorHighlighting.Apply(settings);
     }
 
     // Called by NavigationService when opening any new window.

@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
+using System.Text.Json.Nodes;
 using EDAI.Core.Interfaces;
 using EDAI.Core.Models;
+using EDAI.Core.Scripting;
 using Microsoft.Extensions.Logging;
 
 namespace EDAI.Core.Pipeline;
@@ -21,6 +23,8 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
     private readonly IOutputDispatcher _outputDispatcher;
     private readonly IErrorService _errorService;
     private readonly IJournalAuxFileReader _auxReader;
+    private readonly IScriptingService _scriptingService;
+    private readonly ISessionService _sessionService;
     private readonly ILogger<PipelineOrchestrator> _logger;
 
     public event EventHandler<ParsedJournalEvent>? EventReceived;
@@ -39,16 +43,20 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
         IOutputDispatcher outputDispatcher,
         IErrorService errorService,
         IJournalAuxFileReader auxReader,
+        IScriptingService scriptingService,
+        ISessionService sessionService,
         ILogger<PipelineOrchestrator> logger)
     {
-        _triggerMatcher = triggerMatcher;
-        _promptBuilder = promptBuilder;
-        _openAiService = openAiService;
-        _responseParser = responseParser;
+        _triggerMatcher   = triggerMatcher;
+        _promptBuilder    = promptBuilder;
+        _openAiService    = openAiService;
+        _responseParser   = responseParser;
         _outputDispatcher = outputDispatcher;
-        _errorService = errorService;
-        _auxReader = auxReader;
-        _logger = logger;
+        _errorService     = errorService;
+        _auxReader        = auxReader;
+        _scriptingService = scriptingService;
+        _sessionService   = sessionService;
+        _logger           = logger;
     }
 
     public async Task ProcessAsync(ParsedJournalEvent journalEvent, CancellationToken cancellationToken = default)
@@ -108,14 +116,31 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
             config.Title, triggeringEvent.EventType, config.TriggerTimeoutMs);
         try
         {
-            if (!ConditionEvaluator.Evaluate(config.TriggerCondition, triggeringEvent.RawJson, null, _auxReader.Read))
+            // ── 1. Trigger condition ──────────────────────────────────────────────
+            bool triggerPassed;
+            if (!string.IsNullOrWhiteSpace(config.TriggerConditionScript))
+            {
+                var globals = BuildScriptGlobals(triggeringEvent);
+                triggerPassed = await _scriptingService
+                    .EvaluateConditionAsync(config.TriggerConditionScript, globals, CancellationToken.None)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                triggerPassed = ConditionEvaluator.Evaluate(
+                    config.TriggerCondition, triggeringEvent.RawJson, null, _auxReader.Read);
+            }
+
+            if (!triggerPassed)
             {
                 _logger.LogDebug("Pipeline: {Config} trigger condition false, skipping", config.Title);
                 return;
             }
 
+            // ── 2. Secondary event collection ─────────────────────────────────────
             IReadOnlyList<ParsedJournalEvent> secondary = [];
-            var collectSecondary = config.SendToAi
+            var needsProcessing = config.ProcessingType is ScriptProcessingType.Ai or ScriptProcessingType.Script;
+            var collectSecondary = needsProcessing
                 && config.SecondaryEvents.Count > 0
                 && config.SecondaryWaitTimeMs > 0;
 
@@ -137,22 +162,35 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
 
             var context = new PipelineContext
             {
-                Config = config,
+                Config          = config,
                 TriggeringEvent = triggeringEvent,
                 SecondaryEvents = secondary,
             };
 
-            if (config.SendToAi)
+            // ── 3. Process ────────────────────────────────────────────────────────
+            switch (config.ProcessingType)
             {
-                _promptBuilder.Build(context);
+                case ScriptProcessingType.Ai:
+                    _promptBuilder.Build(context);
+                    context.RawAiResponse = await _openAiService
+                        .SendAsync(context.BuiltPrompt!, config.ModelOverride, CancellationToken.None)
+                        .ConfigureAwait(false);
+                    if (string.IsNullOrWhiteSpace(context.RawAiResponse)) return;
+                    break;
 
-                context.RawAiResponse = await _openAiService
-                    .SendAsync(context.BuiltPrompt!, config.ModelOverride, CancellationToken.None)
-                    .ConfigureAwait(false);
+                case ScriptProcessingType.Script:
+                    if (string.IsNullOrWhiteSpace(config.ProcessScript)) return;
+                    var scriptGlobals = BuildScriptGlobals(triggeringEvent, secondary);
+                    var scriptResult = await _scriptingService
+                        .RunProcessScriptAsync(config.ProcessScript, scriptGlobals, CancellationToken.None)
+                        .ConfigureAwait(false);
+                    context.RawAiResponse = scriptResult.ToJson();
+                    break;
 
-                if (string.IsNullOrWhiteSpace(context.RawAiResponse)) return;
+                // ScriptProcessingType.None: context.RawAiResponse stays null
             }
 
+            // ── 4. Parse + dispatch ───────────────────────────────────────────────
             context.ParsedResponse = _responseParser.Parse(
                 context.RawAiResponse,
                 config,
@@ -168,6 +206,41 @@ public sealed class PipelineOrchestrator : IPipelineOrchestrator
             _errorService.ReportMinor(nameof(PipelineOrchestrator),
                 $"Pipeline run failed for '{config.Title}': {ex.Message}", ex);
         }
+    }
+
+    private ScriptGlobals BuildScriptGlobals(
+        ParsedJournalEvent trigger,
+        IReadOnlyList<ParsedJournalEvent>? secondary = null)
+    {
+        static JsonNode? ParseOrNull(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json)) return null;
+            try { return JsonNode.Parse(json); } catch { return null; }
+        }
+
+        JsonArray? secondaryArray = null;
+        if (secondary is { Count: > 0 })
+        {
+            secondaryArray = [];
+            foreach (var ev in secondary)
+            {
+                var node = ParseOrNull(ev.RawJson);
+                if (node != null) secondaryArray.Add(node);
+            }
+        }
+
+        return new ScriptGlobals(_sessionService)
+        {
+            Trigger     = ParseOrNull(trigger.RawJson),
+            Secondary   = secondaryArray,
+            NavRoute    = ParseOrNull(_auxReader.Read("navroute")),
+            Status      = ParseOrNull(_auxReader.Read("status")),
+            Market      = ParseOrNull(_auxReader.Read("market")),
+            Outfitting  = ParseOrNull(_auxReader.Read("outfitting")),
+            Shipyard    = ParseOrNull(_auxReader.Read("shipyard")),
+            ShipLocker  = ParseOrNull(_auxReader.Read("shipLocker")),
+            ModulesInfo = ParseOrNull(_auxReader.Read("modulesinfo")),
+        };
     }
 
     private bool IsCooldownActive(string eventType, EventConfigurationModel config)

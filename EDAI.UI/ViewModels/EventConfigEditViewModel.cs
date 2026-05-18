@@ -47,7 +47,29 @@ public sealed partial class EventConfigEditViewModel : ObservableValidator
     [NotifyPropertyChangedFor(nameof(IsSecondaryEventsEnabled))]
     [NotifyPropertyChangedFor(nameof(IsPromptEnabled))]
     [NotifyPropertyChangedFor(nameof(IsSchemaEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsAiMode))]
+    [NotifyPropertyChangedFor(nameof(IsScriptMode))]
+    private ScriptProcessingType _processingType = ScriptProcessingType.Ai;
+
+    // Keep SendToAi in sync with ProcessingType for backward compat
     private bool _sendToAi = true;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ProcessScriptSummary))]
+    [NotifyPropertyChangedFor(nameof(HasProcessScript))]
+    private string? _processScript;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasTriggerConditionScript))]
+    private string? _triggerConditionScript;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasDisplayConditionScript))]
+    private string? _displayConditionScript;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasAnnounceConditionScript))]
+    private string? _announceConditionScript;
 
     [ObservableProperty] private string? _modelOverride;
     [ObservableProperty] private string _triggerCondition = string.Empty;
@@ -61,9 +83,26 @@ public sealed partial class EventConfigEditViewModel : ObservableValidator
     public ObservableCollection<string> TriggerTimeoutUnits { get; } =
         ["Milliseconds", "Seconds", "Minutes", "Hours"];
 
-    public bool IsSecondaryEventsEnabled => SendToAi;
-    public bool IsPromptEnabled => SendToAi;
-    public bool IsSchemaEnabled => SendToAi;
+    public bool IsAiMode     => ProcessingType == ScriptProcessingType.Ai;
+    public bool IsScriptMode => ProcessingType == ScriptProcessingType.Script;
+
+    public bool IsSecondaryEventsEnabled => ProcessingType is ScriptProcessingType.Ai or ScriptProcessingType.Script;
+    public bool IsPromptEnabled          => ProcessingType == ScriptProcessingType.Ai;
+    public bool IsSchemaEnabled          => ProcessingType == ScriptProcessingType.Ai;
+
+    public bool HasProcessScript           => !string.IsNullOrWhiteSpace(ProcessScript);
+    public bool HasTriggerConditionScript  => !string.IsNullOrWhiteSpace(TriggerConditionScript);
+    public bool HasDisplayConditionScript  => !string.IsNullOrWhiteSpace(DisplayConditionScript);
+    public bool HasAnnounceConditionScript => !string.IsNullOrWhiteSpace(AnnounceConditionScript);
+
+    public string ProcessScriptSummary => string.IsNullOrWhiteSpace(ProcessScript)
+        ? "No script defined" : "Script configured";
+
+    /// <summary>
+    /// Wired by the view code-behind to open the script designer dialog.
+    /// Returns new script text (may be empty string to clear) or null if cancelled.
+    /// </summary>
+    public Func<bool, string?, string?>? OpenScriptDesigner { get; set; }
 
     // Multi-value collections
     public ObservableCollection<string> TriggeringEvents { get; } = [];
@@ -137,12 +176,17 @@ public sealed partial class EventConfigEditViewModel : ObservableValidator
         DisplayTitle = m.DisplayTitle;
         AnnounceTitle = m.AnnounceTitle;
         ShowTrayNotification = m.ShowTrayNotification;
-        SecondaryWaitTimeMs = m.SecondaryWaitTimeMs;
-        SendToAi = m.SendToAi;
-        ModelOverride = m.ModelOverride;
-        TriggerCondition = m.TriggerCondition ?? string.Empty;
-        DisplayCondition = m.DisplayCondition ?? string.Empty;
-        AnnounceCondition = m.AnnounceCondition ?? string.Empty;
+        SecondaryWaitTimeMs   = m.SecondaryWaitTimeMs;
+        _sendToAi             = m.SendToAi;
+        ProcessingType        = m.ProcessingType;
+        ProcessScript         = m.ProcessScript;
+        TriggerConditionScript  = m.TriggerConditionScript;
+        DisplayConditionScript  = m.DisplayConditionScript;
+        AnnounceConditionScript = m.AnnounceConditionScript;
+        ModelOverride         = m.ModelOverride;
+        TriggerCondition      = m.TriggerCondition ?? string.Empty;
+        DisplayCondition      = m.DisplayCondition ?? string.Empty;
+        AnnounceCondition     = m.AnnounceCondition ?? string.Empty;
         SetTimeoutFromMs(m.TriggerTimeoutMs);
 
         foreach (var e in m.TriggeringEvents) TriggeringEvents.Add(e);
@@ -179,6 +223,47 @@ public sealed partial class EventConfigEditViewModel : ObservableValidator
         var v = NewAnnounceField.Trim();
         if (!string.IsNullOrEmpty(v) && !AnnounceFields.Contains(v)) { AnnounceFields.Add(v); NewAnnounceField = string.Empty; }
     }
+
+    [RelayCommand]
+    private void EditProcessScript()
+    {
+        var result = OpenScriptDesigner?.Invoke(true, ProcessScript);
+        if (result is not null)
+            ProcessScript = string.IsNullOrWhiteSpace(result) ? null : result;
+    }
+
+    [RelayCommand]
+    private void EditTriggerConditionScript()
+    {
+        var result = OpenScriptDesigner?.Invoke(false, TriggerConditionScript);
+        if (result is not null)
+        {
+            TriggerConditionScript = string.IsNullOrWhiteSpace(result) ? null : result;
+            if (TriggerConditionScript is not null)
+                TriggerCondition = string.Empty;
+        }
+    }
+
+    [RelayCommand]
+    private void EditDisplayConditionScript()
+    {
+        var result = OpenScriptDesigner?.Invoke(false, DisplayConditionScript);
+        if (result is not null)
+            DisplayConditionScript = string.IsNullOrWhiteSpace(result) ? null : result;
+    }
+
+    [RelayCommand]
+    private void EditAnnounceConditionScript()
+    {
+        var result = OpenScriptDesigner?.Invoke(false, AnnounceConditionScript);
+        if (result is not null)
+            AnnounceConditionScript = string.IsNullOrWhiteSpace(result) ? null : result;
+    }
+
+    [RelayCommand] private void ClearProcessScript()            => ProcessScript            = null;
+    [RelayCommand] private void ClearTriggerConditionScript()   => TriggerConditionScript   = null;
+    [RelayCommand] private void ClearDisplayConditionScript()   => DisplayConditionScript   = null;
+    [RelayCommand] private void ClearAnnounceConditionScript()  => AnnounceConditionScript  = null;
 
     [RelayCommand] private void RemoveTriggeringEvent(string item) => TriggeringEvents.Remove(item);
     [RelayCommand] private void RemoveSecondaryEvent(string item)  => SecondaryEvents.Remove(item);
@@ -266,13 +351,18 @@ public sealed partial class EventConfigEditViewModel : ObservableValidator
         AnnounceTitle = AnnounceTitle,
         DisplayFields = DisplayFields.ToList(),
         AnnounceFields = AnnounceFields.ToList(),
-        ShowTrayNotification = ShowTrayNotification,
-        SendToAi = SendToAi,
-        ModelOverride = string.IsNullOrWhiteSpace(ModelOverride) ? null : ModelOverride,
-        TriggerCondition = string.IsNullOrWhiteSpace(TriggerCondition) ? null : TriggerCondition,
-        DisplayCondition = string.IsNullOrWhiteSpace(DisplayCondition) ? null : DisplayCondition,
-        AnnounceCondition = string.IsNullOrWhiteSpace(AnnounceCondition) ? null : AnnounceCondition,
-        TriggerTimeoutMs = ComputeTimeoutMs(),
+        ShowTrayNotification    = ShowTrayNotification,
+        SendToAi                = ProcessingType == ScriptProcessingType.Ai,
+        ProcessingType          = ProcessingType,
+        ProcessScript           = ProcessScript,
+        TriggerConditionScript  = TriggerConditionScript,
+        DisplayConditionScript  = DisplayConditionScript,
+        AnnounceConditionScript = AnnounceConditionScript,
+        ModelOverride           = string.IsNullOrWhiteSpace(ModelOverride) ? null : ModelOverride,
+        TriggerCondition        = string.IsNullOrWhiteSpace(TriggerCondition) ? null : TriggerCondition,
+        DisplayCondition        = string.IsNullOrWhiteSpace(DisplayCondition) ? null : DisplayCondition,
+        AnnounceCondition       = string.IsNullOrWhiteSpace(AnnounceCondition) ? null : AnnounceCondition,
+        TriggerTimeoutMs        = ComputeTimeoutMs(),
         CreatedAt = DateTime.UtcNow,
         UpdatedAt = DateTime.UtcNow,
     };

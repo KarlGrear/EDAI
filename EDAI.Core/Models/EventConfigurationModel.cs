@@ -24,10 +24,15 @@ public sealed class EventConfigurationModel
     public IList<string> AnnounceFields { get; set; } = [];
     public bool ShowTrayNotification { get; set; }
     public bool SendToAi { get; set; } = true;
+    public ScriptProcessingType ProcessingType { get; set; } = ScriptProcessingType.None;
+    public string? ProcessScript { get; set; }
     public string? ModelOverride { get; set; }
     public string? TriggerCondition { get; set; }
+    public string? TriggerConditionScript { get; set; }
     public string? DisplayCondition { get; set; }
+    public string? DisplayConditionScript { get; set; }
     public string? AnnounceCondition { get; set; }
+    public string? AnnounceConditionScript { get; set; }
     public long TriggerTimeoutMs { get; set; }
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; set; }

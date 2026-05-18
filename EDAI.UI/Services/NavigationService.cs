@@ -50,6 +50,13 @@ public sealed class NavigationService : INavigationService
         w.Show();
     }
 
+    public void ShowScriptDesigner()
+    {
+        if (!TryGetNewWindow<Views.ScriptDesignerWindow>(out var w, setOwner: false)) return;
+        w.SetupStandalone();
+        w.Show();
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private void ShowSingle<TWindow>() where TWindow : Window

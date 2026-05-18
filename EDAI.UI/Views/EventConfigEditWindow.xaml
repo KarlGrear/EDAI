@@ -240,8 +240,52 @@
                         </DockPanel>
                         <TextBox materialDesign:HintAssist.Hint='e.g.  |trigger.SystemAllegiance| == "Independent"'
                                  Text="{Binding TriggerCondition, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource EDAI.Form.TextBox}"
-                                 FontFamily="Consolas" FontSize="12" />
+                                 FontFamily="Consolas" FontSize="12"
+                                 Margin="0,0,0,4"
+                                 IsReadOnly="{Binding HasTriggerConditionScript}">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox" BasedOn="{StaticResource EDAI.Form.TextBox}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasTriggerConditionScript}" Value="True">
+                                            <Setter Property="Opacity" Value="0.45" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                        <Grid Margin="0,0,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="4" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center" FontSize="11">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="C# script: none" />
+                                        <Setter Property="Opacity" Value="0.5" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasTriggerConditionScript}" Value="True">
+                                                <Setter Property="Text" Value="C# script: configured (overrides text condition)" />
+                                                <Setter Property="Opacity" Value="1" />
+                                                <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Primary}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <Button Grid.Column="2"
+                                    Content="Script..."
+                                    Command="{Binding EditTriggerConditionScriptCommand}"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}" />
+                            <Button Grid.Column="4"
+                                    Content="Clear"
+                                    Command="{Binding ClearTriggerConditionScriptCommand}"
+                                    IsEnabled="{Binding HasTriggerConditionScript}"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}" />
+                        </Grid>
 
                         <!-- Secondary Events -->
                         <StackPanel IsEnabled="{Binding IsSecondaryEventsEnabled}" Margin="0,24,0,0">
@@ -325,16 +369,30 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="24">
 
-                        <!-- Send to AI toggle -->
-                        <DockPanel Margin="0,0,0,20">
+                        <!-- Processing Mode -->
+                        <DockPanel Margin="0,0,0,8">
                             <controls:HelpIcon DockPanel.Dock="Right"
-                                               HelpText="When checked, EDAI sends the prompt to the AI and uses the response for display and announcements. When unchecked, the AI call is skipped and the settings below are not used." />
-                            <CheckBox Content="Send to AI"
-                                      IsChecked="{Binding SendToAi}"
-                                      Style="{StaticResource EDAI.Form.CheckBox}" />
+                                               HelpText="None: event is detected but no processing occurs. AI: sends a prompt to OpenAI and uses the response for display and announcements. Script: runs a custom C# script to produce the output." />
+                            <TextBlock Text="Processing Mode"
+                                       Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                                       Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
                         </DockPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                            <RadioButton Content="None"
+                                         IsChecked="{Binding ProcessingType, Converter={StaticResource EnumToBool}, ConverterParameter=None}"
+                                         Style="{StaticResource MaterialDesignRadioButton}"
+                                         Margin="0,0,20,0" />
+                            <RadioButton Content="AI"
+                                         IsChecked="{Binding ProcessingType, Converter={StaticResource EnumToBool}, ConverterParameter=Ai}"
+                                         Style="{StaticResource MaterialDesignRadioButton}"
+                                         Margin="0,0,20,0" />
+                            <RadioButton Content="Script"
+                                         IsChecked="{Binding ProcessingType, Converter={StaticResource EnumToBool}, ConverterParameter=Script}"
+                                         Style="{StaticResource MaterialDesignRadioButton}" />
+                        </StackPanel>
 
-                        <StackPanel IsEnabled="{Binding IsPromptEnabled}">
+                        <!-- AI section -->
+                        <StackPanel Visibility="{Binding IsAiMode, Converter={StaticResource BoolToVis}}">
 
                             <!-- Prompt -->
                             <DockPanel Margin="0,0,0,4">
@@ -385,6 +443,41 @@
                             </Border>
 
                         </StackPanel>
+
+                        <!-- Script section -->
+                        <StackPanel Visibility="{Binding IsScriptMode, Converter={StaticResource BoolToVis}}">
+                            <DockPanel Margin="0,0,0,8">
+                                <controls:HelpIcon DockPanel.Dock="Right"
+                                                   HelpText="A C# script that runs when this event fires and returns a result object. Use globals.Trigger and globals.Secondary to access event data. The script result is used as-is for display and announcements." />
+                                <TextBlock Text="Process Script"
+                                           Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                                           Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                            </DockPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="8" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="4" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding ProcessScriptSummary}"
+                                           VerticalAlignment="Center"
+                                           FontSize="12"
+                                           Opacity="0.7" />
+                                <Button Grid.Column="2"
+                                        Content="Edit Script..."
+                                        Command="{Binding EditProcessScriptCommand}"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}" />
+                                <Button Grid.Column="4"
+                                        Content="Clear"
+                                        Command="{Binding ClearProcessScriptCommand}"
+                                        IsEnabled="{Binding HasProcessScript}"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}" />
+                            </Grid>
+                        </StackPanel>
+
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -484,7 +577,43 @@
                                     <TextBox materialDesign:HintAssist.Hint='e.g.  |result.threat_level| == "High"'
                                              Text="{Binding DisplayCondition, UpdateSourceTrigger=PropertyChanged}"
                                              Style="{StaticResource EDAI.Form.TextBox}"
-                                             FontFamily="Consolas" FontSize="11" />
+                                             FontFamily="Consolas" FontSize="11"
+                                             Margin="0,0,0,4" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="4" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="2" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" VerticalAlignment="Center" FontSize="10">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="Script: none" />
+                                                    <Setter Property="Opacity" Value="0.5" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasDisplayConditionScript}" Value="True">
+                                                            <Setter Property="Text" Value="Script: configured" />
+                                                            <Setter Property="Opacity" Value="1" />
+                                                            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Primary}" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                        <Button Grid.Column="2"
+                                                Content="Script..."
+                                                Command="{Binding EditDisplayConditionScriptCommand}"
+                                                Style="{StaticResource MaterialDesignOutlinedButton}"
+                                                Padding="8,4" FontSize="11" />
+                                        <Button Grid.Column="4"
+                                                Content="Clear"
+                                                Command="{Binding ClearDisplayConditionScriptCommand}"
+                                                IsEnabled="{Binding HasDisplayConditionScript}"
+                                                Style="{StaticResource MaterialDesignOutlinedButton}"
+                                                Padding="8,4" FontSize="11" />
+                                    </Grid>
                                 </StackPanel>
                             </Border>
 
@@ -564,7 +693,43 @@
                                     <TextBox materialDesign:HintAssist.Hint='e.g.  |result.threat_level| == "High"'
                                              Text="{Binding AnnounceCondition, UpdateSourceTrigger=PropertyChanged}"
                                              Style="{StaticResource EDAI.Form.TextBox}"
-                                             FontFamily="Consolas" FontSize="11" />
+                                             FontFamily="Consolas" FontSize="11"
+                                             Margin="0,0,0,4" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="4" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="2" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" VerticalAlignment="Center" FontSize="10">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="Script: none" />
+                                                    <Setter Property="Opacity" Value="0.5" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasAnnounceConditionScript}" Value="True">
+                                                            <Setter Property="Text" Value="Script: configured" />
+                                                            <Setter Property="Opacity" Value="1" />
+                                                            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Primary}" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                        <Button Grid.Column="2"
+                                                Content="Script..."
+                                                Command="{Binding EditAnnounceConditionScriptCommand}"
+                                                Style="{StaticResource MaterialDesignOutlinedButton}"
+                                                Padding="8,4" FontSize="11" />
+                                        <Button Grid.Column="4"
+                                                Content="Clear"
+                                                Command="{Binding ClearAnnounceConditionScriptCommand}"
+                                                IsEnabled="{Binding HasAnnounceConditionScript}"
+                                                Style="{StaticResource MaterialDesignOutlinedButton}"
+                                                Padding="8,4" FontSize="11" />
+                                    </Grid>
                                 </StackPanel>
                             </Border>
                         </Grid>

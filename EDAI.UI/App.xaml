@@ -13,6 +13,7 @@
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BoolToVis" />
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+            <converters:EnumToBoolConverter x:Key="EnumToBool" />
 
             <!--
                 Mutable brushes for form control border theming.

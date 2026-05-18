@@ -33,8 +33,10 @@ public sealed class ConfigExportPayload
     public IList<string> SecondaryEvents { get; init; } = [];
     public int SecondaryWaitTimeMs { get; init; } = 1000;
 
-    // AI
+    // AI / Script processing
     public bool SendToAi { get; init; } = true;
+    public ScriptProcessingType ProcessingType { get; init; } = ScriptProcessingType.None;
+    public string? ProcessScript { get; init; }
     public string Prompt { get; init; } = string.Empty;
     public string? ExpectedResultsSchema { get; init; }
     public string? ModelOverride { get; init; }
@@ -43,11 +45,16 @@ public sealed class ConfigExportPayload
     public bool DisplayTitle { get; init; }
     public IList<string> DisplayFields { get; init; } = [];
     public string? DisplayCondition { get; init; }
+    public string? DisplayConditionScript { get; init; }
 
     // Announce
     public bool AnnounceTitle { get; init; }
     public IList<string> AnnounceFields { get; init; } = [];
     public string? AnnounceCondition { get; init; }
+    public string? AnnounceConditionScript { get; init; }
+
+    // Trigger condition scripts
+    public string? TriggerConditionScript { get; init; }
 
     public bool ShowTrayNotification { get; init; }
 }

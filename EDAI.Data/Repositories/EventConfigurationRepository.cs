@@ -105,10 +105,15 @@ public sealed class EventConfigurationRepository : IEventConfigurationRepository
         AnnounceFields = e.AnnounceFields,
         ShowTrayNotification = e.ShowTrayNotification,
         SendToAi = e.SendToAi,
+        ProcessingType = Enum.TryParse<ScriptProcessingType>(e.ProcessingType, out var pt) ? pt : ScriptProcessingType.None,
+        ProcessScript = e.ProcessScript,
         ModelOverride = e.ModelOverride,
         TriggerCondition = e.TriggerCondition,
+        TriggerConditionScript = e.TriggerConditionScript,
         DisplayCondition = e.DisplayCondition,
+        DisplayConditionScript = e.DisplayConditionScript,
         AnnounceCondition = e.AnnounceCondition,
+        AnnounceConditionScript = e.AnnounceConditionScript,
         TriggerTimeoutMs = e.TriggerTimeoutMs,
         CreatedAt = e.CreatedAt,
         UpdatedAt = e.UpdatedAt,
@@ -138,10 +143,15 @@ public sealed class EventConfigurationRepository : IEventConfigurationRepository
         e.AnnounceFields = [.. m.AnnounceFields];
         e.ShowTrayNotification = m.ShowTrayNotification;
         e.SendToAi = m.SendToAi;
+        e.ProcessingType = m.ProcessingType.ToString();
+        e.ProcessScript = m.ProcessScript;
         e.ModelOverride = m.ModelOverride;
         e.TriggerCondition = m.TriggerCondition;
+        e.TriggerConditionScript = m.TriggerConditionScript;
         e.DisplayCondition = m.DisplayCondition;
+        e.DisplayConditionScript = m.DisplayConditionScript;
         e.AnnounceCondition = m.AnnounceCondition;
+        e.AnnounceConditionScript = m.AnnounceConditionScript;
         e.TriggerTimeoutMs = m.TriggerTimeoutMs;
     }
 }
