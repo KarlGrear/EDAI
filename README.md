@@ -9,12 +9,15 @@ A Windows desktop AI co-pilot for Elite Dangerous commanders. EDAI watches your 
 - **Real-time journal monitoring** — tails the active journal file using `FileSystemWatcher`; no polling, no replaying old events
 - **Token-conscious by design** — only events you explicitly configure ever reach OpenAI; all other events are silently discarded
 - **Per-event AI pipelines** — each configuration has its own prompt, expected JSON schema, display rules, TTS rules, and optional trigger/display/announce conditions
-- **Template engine** — embed live game data in prompts and output fields using `|trigger.*|`, `|result.*|`, and `|aux.*|` tokens
+- **Template engine** — embed live game data in prompts and output fields using `|trigger.*|`, `|result.*|`, `|aux.*|`, and `|session.*|` tokens
 - **Auxiliary file access** — read Status.json, Market.json, NavRoute.json and five other Elite Dangerous companion files directly into prompts at runtime
 - **Condition evaluator** — gate triggers, display, and speech on dynamic template expressions (`|trigger.StarSystem| == "Sol"`)
 - **Secondary event collection** — wait a configurable window after a trigger to gather related follow-up events before building the prompt (e.g. collect `ScanDetailed` entries after `FSSAllBodiesFound`)
 - **Per-pipeline queuing** — if the same trigger fires while its pipeline is already running, the new event is queued and processed in order
-- **Local-only configs** — disable the AI call (`SendToAi = false`) to use the template/condition system for purely local display and speech
+- **C# scripting engine** — write Roslyn scripts as condition expressions or as AI-replacement processors; scripts receive the journal event, aux files, and a shared session store as globals
+- **Session store** — persistent key-value store (`session.json`) readable and writable from scripts and accessible in prompt templates via `|session.key|` tokens
+- **Security sandbox** — syntax walker blocks unsafe APIs; opt-in permission gates for file system, network, process execution, and reflection access configurable in Settings
+- **Local-only configs** — set processing type to `None` to use the template/condition system for purely local display and speech without any AI or script call
 - **Per-config model override** — use a different OpenAI model (e.g. a faster/cheaper one) for specific configurations
 - **Windows Text-to-Speech** — built-in SAPI voices, no internet required for speech; runs on a background thread so it never blocks the UI
 - **Minimize to system tray** — journal watching and the AI pipeline continue running when the window is minimised; right-click the tray icon to restore or exit
@@ -101,6 +104,7 @@ Toolbar buttons (left to right):
 | **Notifications** | Global tray notification override |
 | **Interface** | Always on Top, Show Splash Screen |
 | **Font** | Font family (all system fonts), font size slider (8–32 pt) |
+| **Security** | Per-permission opt-in gates for scripts: File System, Network, Process Execution, Reflection (all off by default) |
 
 ### Theme Window
 
@@ -120,6 +124,8 @@ Opened via the Palette icon. Changes apply in real time so you can preview befor
 
 The color picker uses HSV (hue/saturation/value) with RGB numeric inputs and a hex field. An eyedropper tool lets you sample any color from any pixel on screen. Click **Reset to Default** to remove the custom override for the selected element.
 
+Script editor syntax highlighting colours are also configurable from this window.
+
 ### Event Configurations Window
 
 A filterable list of all event configurations with an inline **Enabled** toggle per row.
@@ -137,11 +143,17 @@ A four-tab form for a single pipeline configuration. Every field has an inline *
 | Tab | Contents |
 |---|---|
 | **General** | Title, Description, Category, Enabled, Model Override |
-| **Trigger** | Send to AI flag, Send Full Trigger Event flag, Triggering Events, Trigger Condition, Secondary Events, Secondary Wait (ms) |
-| **Processing** | Prompt, Expected Results Schema, Available Tokens hint panel |
+| **Trigger** | Processing Type (AI / Script / None), Send Full Trigger Event flag, Triggering Events, Trigger Condition, Secondary Events, Secondary Wait (ms) |
+| **Processing** | Prompt / Script editor, Expected Results Schema, Available Tokens hint panel |
 | **Action** | Display (title, fields, keys, condition) and Announce (title, fields, keys, condition) side-by-side, Show Tray Notification |
 
-The **Processing** tab is disabled (with an info banner) when **Send to AI** is unchecked on the Trigger tab.
+The **Processing** tab shows either the AI prompt fields or a C# script editor depending on the selected Processing Type. It is disabled (with an info banner) when Processing Type is `None`.
+
+### Script Designer Window
+
+A dedicated editor for writing and validating C# scripts used in condition fields or as AI-replacement processors. Features AvalonEdit syntax highlighting, background Roslyn compilation with inline error feedback, and a globals reference panel listing all variables injected into the script at runtime.
+
+Scripts can be opened in the designer from any condition field or from the Processing tab when Processing Type is set to `Script`.
 
 ### Test Window
 
@@ -190,11 +202,12 @@ Collected secondary events are included in the prompt as additional context JSON
 
 | Field | Description |
 |---|---|
-| **Send to AI** | When unchecked, the OpenAI call is skipped entirely. The template engine and conditions still run, so you can use EDAI purely for local display or speech based on journal data. When unchecked, the Processing tab is disabled in the edit window. |
-| **Prompt** | The instruction sent to OpenAI after the ship-AI system persona. Supports `|trigger.*|` and `|aux.*|` template tokens. |
-| **Expected Results Schema** | JSON template defining the exact shape of the AI response. This is embedded in the prompt and controls which `|result.*|` tokens become available. Example: `{"star_class": "", "threat_level": "", "recommendation": ""}` Must be valid JSON — the edit form validates it on save. |
+| **Processing Type** | `AI` — routes the event through OpenAI (default). `Script` — runs a C# Roslyn script instead of the AI call; the script populates `Result` which feeds `\|result.*\|` tokens identically to an AI response. `None` — skips both; the template/condition system still runs for local display and speech. |
+| **Prompt** | The instruction sent to OpenAI after the ship-AI system persona. Supports `\|trigger.*\|` and `\|aux.*\|` template tokens. Available when Processing Type is `AI`. |
+| **Process Script** | C# script executed instead of the AI call. The script receives all aux file globals and must populate the `Result` variable. Available when Processing Type is `Script`. |
+| **Expected Results Schema** | JSON template defining the exact shape of the AI response. This is embedded in the prompt and controls which `\|result.*\|` tokens become available. Example: `{"star_class": "", "threat_level": "", "recommendation": ""}` Must be valid JSON — the edit form validates it on save. Available when Processing Type is `AI`. |
 | **Model Override** | Use a different OpenAI model for this configuration only. Leave blank to use the global default from Settings. Available options: `gpt-5`, `gpt-5-mini`, `gpt-5-nano`, `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`, `gpt-4`, `gpt-3.5-turbo`, or any custom model ID. |
-| **Send Full Trigger Event** | Include the complete raw trigger event JSON in the prompt. Uncheck to reduce token usage when you only need specific fields via `|trigger.*|` tokens in the prompt. |
+| **Send Full Trigger Event** | Include the complete raw trigger event JSON in the prompt. Uncheck to reduce token usage when you only need specific fields via `\|trigger.*\|` tokens in the prompt. |
 
 ### Display (UI Response Panel)
 
@@ -226,7 +239,7 @@ Template tokens use the `|...|` syntax and are resolved against JSON data at run
 | Prefix | Data Source |
 |---|---|
 | `trigger.` | The triggering journal event JSON |
-| `result.` | The AI response JSON (available after OpenAI call) |
+| `result.` | The AI or script response (available after the processing step) |
 | `status.` | Status.json — current ship state |
 | `market.` | Market.json — local station market |
 | `navroute.` | NavRoute.json — plotted navigation route |
@@ -234,6 +247,7 @@ Template tokens use the `|...|` syntax and are resolved against JSON data at run
 | `shiplocker.` | ShipLocker.json — cargo/inventory |
 | `shipyard.` | Shipyard.json — station shipyard |
 | `modulesinfo.` | ModulesInfo.json — installed ship modules |
+| `session.` | session.json — persistent cross-pipeline key-value store |
 
 Auxiliary files (`status.`, `market.`, etc.) are read fresh from your Elite Dangerous saved games folder on every pipeline run, so they reflect current game state at the moment the event fires.
 
@@ -348,9 +362,11 @@ Journal file (live)
   PromptBuilder           – resolves |trigger.*| and |aux.*| tokens; assembles:
        │                    system persona + config prompt + event JSON + schema
        ▼
-  OpenAIService           – stateless chat completion in JSON-object mode
-       │                    (skipped if SendToAi = false)
-       │  raw JSON response
+  ProcessingDispatcher    – routes by ProcessingType:
+       ├──[AI]──▶  OpenAIService     – stateless chat completion in JSON-object mode
+       ├──[Script]▶ ScriptingService – Roslyn C# execution; Result → flat JSON
+       └──[None]──▶ (skipped)
+       │  raw JSON response / script result / empty
        ▼
   ResponseParser          – extracts fields, applies |result.*| and |trigger.*| templates
        │                    to DisplayFields and AnnounceFields; evaluates conditions
@@ -390,7 +406,7 @@ Announces docking without making any AI call.
 |---|---|
 | Title | Docking |
 | Triggering Events | `Docked` |
-| Send to AI | ☐ unchecked |
+| Processing Type | `None` |
 | Announce Fields | `Docking confirmed at |trigger.StationName| in |trigger.StarSystem|.` |
 
 ### High-Population System Filter
@@ -435,11 +451,15 @@ EliteDangerousAI.sln
 │   ├── Services/            NavigationService, TrayIconService
 │   ├── Validators/          Data annotation validators (JsonValidator)
 │   ├── ViewModels/          MVVM ViewModels (CommunityToolkit.Mvvm source generators)
-│   └── Views/               XAML windows (Main, Settings, Theme, EventConfig, Test, …)
-└── EDAI.Data/               EF Core + SQLite data layer
-    ├── Entities/            EF Core entity classes
-    ├── Repositories/        Repository pattern implementations
-    └── Migrations/          EF Core migrations (auto-applied on startup)
+│   └── Views/               XAML windows (Main, Settings, Theme, EventConfig, Test, ScriptDesigner, …)
+├── EDAI.Data/               EF Core + SQLite data layer
+│   ├── Entities/            EF Core entity classes
+│   ├── Repositories/        Repository pattern implementations
+│   └── Migrations/          EF Core migrations (auto-applied on startup)
+└── EDAI.Tests/              Unit tests (xUnit)
+    └──                      Journal parsing, trigger matching, condition evaluation,
+                             prompt building, template engine, OpenAI response parsing,
+                             scripting service validation and execution
 ```
 
 ---
@@ -452,6 +472,8 @@ EliteDangerousAI.sln
 | UI | WPF + MVVM (CommunityToolkit.Mvvm source generators) |
 | UI Library | Material Design in XAML (MaterialDesignThemes 5.x) |
 | AI | OpenAI .NET SDK v2 |
+| Scripting | Microsoft.CodeAnalysis.CSharp.Scripting (Roslyn) |
+| Script Editor | AvalonEdit |
 | TTS | System.Speech.Synthesis (Windows SAPI, built-in) |
 | Database | SQLite via EF Core 10 |
 | Secrets | Windows DPAPI (`ProtectedData.CurrentUser`) |
@@ -463,12 +485,13 @@ EliteDangerousAI.sln
 
 ## Data Files
 
-Both files are created next to the application executable on first run:
+These files are created next to the application executable on first run:
 
 | File | Purpose |
 |---|---|
 | `EDAI.db` | SQLite database — settings, event configs, categories, session history, response logs |
 | `EDAI.log` | Flat-file log — `[timestamp] [LEVEL] [source] message` |
+| `session.json` | Persistent key-value store written by scripts; read via `\|session.key\|` tokens; created on first write |
 
 ### Database Tables
 
