@@ -238,21 +238,21 @@
                             <TextBlock Text="Trigger Condition (optional)" FontSize="12" VerticalAlignment="Center"
                                        Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
                         </DockPanel>
-                        <TextBox materialDesign:HintAssist.Hint='e.g.  |trigger.SystemAllegiance| == "Independent"'
-                                 Text="{Binding TriggerCondition, UpdateSourceTrigger=PropertyChanged}"
-                                 FontFamily="Consolas" FontSize="12"
-                                 Margin="0,0,0,4"
-                                 IsReadOnly="{Binding HasTriggerConditionScript}">
-                            <TextBox.Style>
-                                <Style TargetType="TextBox" BasedOn="{StaticResource EDAI.Form.TextBox}">
+                        <controls:ScriptEditor Text="{Binding TriggerCondition}"
+                                              CompletionTokens="{Binding ResultTokenList}"
+                                              IsReadOnly="{Binding HasTriggerConditionScript}"
+                                              MinHeight="30"
+                                              Margin="0,0,0,4">
+                            <controls:ScriptEditor.Style>
+                                <Style TargetType="{x:Type controls:ScriptEditor}">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding HasTriggerConditionScript}" Value="True">
                                             <Setter Property="Opacity" Value="0.45" />
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
-                            </TextBox.Style>
-                        </TextBox>
+                            </controls:ScriptEditor.Style>
+                        </controls:ScriptEditor>
                         <Grid Margin="0,0,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -402,13 +402,10 @@
                                            Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
                                            Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
                             </DockPanel>
-                            <TextBox materialDesign:HintAssist.Hint="Instruction sent to the AI after the persona..."
-                                     Text="{Binding Prompt, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource EDAI.Form.TextBox}"
-                                     AcceptsReturn="True" TextWrapping="Wrap"
-                                     MinHeight="80" MaxHeight="200"
-                                     VerticalScrollBarVisibility="Auto"
-                                     Margin="0,0,0,20" />
+                            <controls:ScriptEditor Text="{Binding Prompt}"
+                                                  CompletionTokens="{Binding ResultTokenList}"
+                                                  MinHeight="80" MaxHeight="200"
+                                                  Margin="0,0,0,20" />
 
                             <!-- Expected Results Schema -->
                             <DockPanel Margin="0,0,0,4">
@@ -562,10 +559,10 @@
                                             <ColumnDefinition Width="4" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBox Grid.Column="0"
-                                                 materialDesign:HintAssist.Hint="e.g. Arrived in |result.system_name|"
-                                                 Text="{Binding NewDisplayField, UpdateSourceTrigger=PropertyChanged}"
-                                                 Style="{StaticResource EDAI.Form.TextBox}" />
+                                        <controls:ScriptEditor Grid.Column="0"
+                                                           Text="{Binding NewDisplayField}"
+                                                           CompletionTokens="{Binding ResultTokenList}"
+                                                           MinHeight="30" />
                                         <Button Grid.Column="2"
                                                 Content="Add"
                                                 Command="{Binding AddDisplayFieldCommand}"
@@ -574,11 +571,10 @@
 
                                     <TextBlock Text="Display Condition (optional)" FontSize="12" Margin="0,0,0,4"
                                                Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
-                                    <TextBox materialDesign:HintAssist.Hint='e.g.  |result.threat_level| == "High"'
-                                             Text="{Binding DisplayCondition, UpdateSourceTrigger=PropertyChanged}"
-                                             Style="{StaticResource EDAI.Form.TextBox}"
-                                             FontFamily="Consolas" FontSize="11"
-                                             Margin="0,0,0,4" />
+                                    <controls:ScriptEditor Text="{Binding DisplayCondition}"
+                                                          CompletionTokens="{Binding ResultTokenList}"
+                                                          MinHeight="30"
+                                                          Margin="0,0,0,4" />
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
@@ -678,10 +674,10 @@
                                             <ColumnDefinition Width="4" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBox Grid.Column="0"
-                                                 materialDesign:HintAssist.Hint="e.g. You have arrived in |result.system_name|"
-                                                 Text="{Binding NewAnnounceField, UpdateSourceTrigger=PropertyChanged}"
-                                                 Style="{StaticResource EDAI.Form.TextBox}" />
+                                        <controls:ScriptEditor Grid.Column="0"
+                                                           Text="{Binding NewAnnounceField}"
+                                                           CompletionTokens="{Binding ResultTokenList}"
+                                                           MinHeight="30" />
                                         <Button Grid.Column="2"
                                                 Content="Add"
                                                 Command="{Binding AddAnnounceFieldCommand}"
@@ -690,11 +686,10 @@
 
                                     <TextBlock Text="Announce Condition (optional)" FontSize="12" Margin="0,0,0,4"
                                                Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
-                                    <TextBox materialDesign:HintAssist.Hint='e.g.  |result.threat_level| == "High"'
-                                             Text="{Binding AnnounceCondition, UpdateSourceTrigger=PropertyChanged}"
-                                             Style="{StaticResource EDAI.Form.TextBox}"
-                                             FontFamily="Consolas" FontSize="11"
-                                             Margin="0,0,0,4" />
+                                    <controls:ScriptEditor Text="{Binding AnnounceCondition}"
+                                                          CompletionTokens="{Binding ResultTokenList}"
+                                                          MinHeight="30"
+                                                          Margin="0,0,0,4" />
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />

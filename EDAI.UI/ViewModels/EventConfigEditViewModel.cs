@@ -35,6 +35,7 @@ public sealed partial class EventConfigEditViewModel : ObservableValidator
     [ObservableProperty] private string _prompt = string.Empty;
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AvailableTokens))]
+    [NotifyPropertyChangedFor(nameof(ResultTokenList))]
     [CustomValidation(typeof(JsonValidator), nameof(JsonValidator.ValidateSingleObject))]
     private string _expectedResultsSchema = string.Empty;
     [ObservableProperty] private bool _displayTitle;
@@ -134,6 +135,22 @@ public sealed partial class EventConfigEditViewModel : ObservableValidator
                 return $"Trigger: {triggerHint}\nResult:  {resultTokens}";
             }
             catch { return $"Trigger: {triggerHint}\nResult:  (schema JSON is invalid)"; }
+        }
+    }
+
+    public IReadOnlyList<string> ResultTokenList
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(ExpectedResultsSchema)) return [];
+            try
+            {
+                using var doc = JsonDocument.Parse(ExpectedResultsSchema);
+                return doc.RootElement.EnumerateObject()
+                    .Select(p => $"result.{p.Name}")
+                    .ToList();
+            }
+            catch { return []; }
         }
     }
 
