@@ -49,12 +49,12 @@ jobs:
           --output ./publish
           --no-restore
 
-      - name: Resolve version via minver-cli
+      - name: Resolve version from tag
         id: get_version
         shell: bash
         run: |
-          dotnet tool install --global minver-cli
-          echo "version=$(minver)" >> "$GITHUB_OUTPUT"
+          VERSION="${{ github.ref_name }}"
+          echo "version=${VERSION#v}" >> "$GITHUB_OUTPUT"
 
       - name: Azure login (OIDC)
         uses: azure/login@v2
