@@ -1,0 +1,10 @@
+global using Xunit;
+global using Moq;
+global using Microsoft.Extensions.Logging.Abstractions;
+global using System.Text.Json.Nodes;
+global using EDAI.Core.Interfaces;
+global using EDAI.Core.Journal;
+global using EDAI.Core.Models;
+global using EDAI.Core.OpenAI;
+global using EDAI.Core.Pipeline;
+global using EDAI.Core.Scripting;
