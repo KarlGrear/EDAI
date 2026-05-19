@@ -22,9 +22,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Event processing mode is now a `ProcessingType` enum (`None` / `AI` / `Script`) replacing the boolean `SendToAi` flag; existing configurations load unchanged (absent field treated as `AI` when `sendToAi` was true)
 - Syntax highlighting colours for the script editor are configurable via the theme window
 - GitHub Actions workflows opt into Node.js 24 to resolve Node.js 20 deprecation warnings
+- Release workflow derives the package version directly from the triggering git tag instead of invoking `minver-cli`, eliminating pre-release placeholder version errors during packaging
 
 ### Fixed
 - Pipeline test screen updated to reflect pipeline processing changes introduced with the scripting engine
+- NuGet version conflict between `Microsoft.EntityFrameworkCore.Design 10.0.8` and the Roslyn packages resolved by pinning `Microsoft.CodeAnalysis.Common 5.3.0`
+
+### Security
+- Release workflow granted explicit `contents: write` and `id-token: write` permissions required for creating GitHub releases and Azure OIDC login
 
 ## [1.0.0] - 2026-05-13
 

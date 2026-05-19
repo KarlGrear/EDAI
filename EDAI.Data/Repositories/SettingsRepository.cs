@@ -85,6 +85,10 @@ public sealed class SettingsRepository : ISettingsRepository
         TestWindowTop            = e.TestWindowTop,
         TestWindowWidth          = e.TestWindowWidth > 0 ? e.TestWindowWidth  : 900,
         TestWindowHeight         = e.TestWindowHeight > 0 ? e.TestWindowHeight : 680,
+        ScriptDesignerLeft       = e.ScriptDesignerLeft,
+        ScriptDesignerTop        = e.ScriptDesignerTop,
+        ScriptDesignerWidth      = e.ScriptDesignerWidth > 0 ? e.ScriptDesignerWidth  : 960,
+        ScriptDesignerHeight     = e.ScriptDesignerHeight > 0 ? e.ScriptDesignerHeight : 700,
         ScriptingAllowFileSystem       = e.ScriptingAllowFileSystem,
         ScriptingAllowNetwork          = e.ScriptingAllowNetwork,
         ScriptingAllowProcessExecution = e.ScriptingAllowProcessExecution,
@@ -142,6 +146,10 @@ public sealed class SettingsRepository : ISettingsRepository
         e.TestWindowTop          = m.TestWindowTop;
         e.TestWindowWidth        = m.TestWindowWidth;
         e.TestWindowHeight       = m.TestWindowHeight;
+        e.ScriptDesignerLeft     = m.ScriptDesignerLeft;
+        e.ScriptDesignerTop      = m.ScriptDesignerTop;
+        e.ScriptDesignerWidth    = m.ScriptDesignerWidth;
+        e.ScriptDesignerHeight   = m.ScriptDesignerHeight;
         e.ScriptingAllowFileSystem       = m.ScriptingAllowFileSystem;
         e.ScriptingAllowNetwork          = m.ScriptingAllowNetwork;
         e.ScriptingAllowProcessExecution = m.ScriptingAllowProcessExecution;

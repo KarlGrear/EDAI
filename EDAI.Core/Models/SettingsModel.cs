@@ -49,6 +49,10 @@ public sealed class SettingsModel
     public double? TestWindowTop { get; set; }
     public double TestWindowWidth { get; set; } = 900;
     public double TestWindowHeight { get; set; } = 680;
+    public double? ScriptDesignerLeft { get; set; }
+    public double? ScriptDesignerTop { get; set; }
+    public double ScriptDesignerWidth { get; set; } = 960;
+    public double ScriptDesignerHeight { get; set; } = 700;
 
     // ── Scripting permissions ────────────────────────────────────────────────
     public bool ScriptingAllowFileSystem { get; set; }

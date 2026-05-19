@@ -3,6 +3,7 @@ using System;
 using EDAI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EDAI.Data.Migrations
 {
     [DbContext(typeof(EdaiDbContext))]
-    partial class EdaiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260518100000_AddScriptDesignerWindowPosition")]
+    partial class AddScriptDesignerWindowPosition
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.7");
@@ -341,6 +344,18 @@ namespace EDAI.Data.Migrations
                     b.Property<string>("SystemPersona")
                         .HasColumnType("TEXT");
 
+                    b.Property<double>("TestWindowHeight")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("TestWindowLeft")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("TestWindowTop")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("TestWindowWidth")
+                        .HasColumnType("REAL");
+
                     b.Property<string>("Theme")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -374,18 +389,6 @@ namespace EDAI.Data.Migrations
                         .HasColumnType("REAL");
 
                     b.Property<double>("WindowWidth")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("TestWindowHeight")
-                        .HasColumnType("REAL");
-
-                    b.Property<double?>("TestWindowLeft")
-                        .HasColumnType("REAL");
-
-                    b.Property<double?>("TestWindowTop")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("TestWindowWidth")
                         .HasColumnType("REAL");
 
                     b.HasKey("Id");

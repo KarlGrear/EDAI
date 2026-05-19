@@ -1,5 +1,7 @@
+using System.ComponentModel;
 using System.Windows;
 using ICSharpCode.AvalonEdit.Highlighting;
+using EDAI.Core.Interfaces;
 using EDAI.UI.Services;
 using EDAI.UI.ViewModels;
 
@@ -8,16 +10,18 @@ namespace EDAI.UI.Views;
 public partial class ScriptDesignerWindow : Window
 {
     private readonly ScriptDesignerViewModel _viewModel;
+    private readonly ISettingsRepository _settingsRepo;
 
-    public ScriptDesignerWindow(ScriptDesignerViewModel viewModel)
+    public ScriptDesignerWindow(ScriptDesignerViewModel viewModel, ISettingsRepository settingsRepo)
     {
-        _viewModel = viewModel;
-        DataContext = viewModel;
+        _viewModel    = viewModel;
+        _settingsRepo = settingsRepo;
+        DataContext   = viewModel;
         InitializeComponent();
         Loaded += OnLoaded;
     }
 
-    private void OnLoaded(object sender, RoutedEventArgs e)
+    private async void OnLoaded(object sender, RoutedEventArgs e)
     {
         ScriptEditor.SyntaxHighlighting = HighlightingManager.Instance.GetDefinition("C#");
         ScriptEditorHighlighting.ApplyToEditor(ScriptEditor);
@@ -35,7 +39,49 @@ public partial class ScriptDesignerWindow : Window
             }
         };
 
+        var settings = await _settingsRepo.GetAsync();
+
+        Width  = settings.ScriptDesignerWidth  > 0 ? settings.ScriptDesignerWidth  : 960;
+        Height = settings.ScriptDesignerHeight > 0 ? settings.ScriptDesignerHeight : 700;
+
+        if (settings.ScriptDesignerLeft.HasValue && settings.ScriptDesignerTop.HasValue)
+        {
+            double left = settings.ScriptDesignerLeft.Value;
+            double top  = settings.ScriptDesignerTop.Value;
+
+            double vLeft   = SystemParameters.VirtualScreenLeft;
+            double vTop    = SystemParameters.VirtualScreenTop;
+            double vRight  = vLeft + SystemParameters.VirtualScreenWidth;
+            double vBottom = vTop  + SystemParameters.VirtualScreenHeight;
+
+            bool onScreen = left + 100 <= vRight  && left + Width  >= vLeft
+                         && top  + 50  <= vBottom && top  + Height >= vTop;
+
+            if (onScreen)
+            {
+                WindowStartupLocation = WindowStartupLocation.Manual;
+                Left = left;
+                Top  = top;
+            }
+        }
+
         ScriptEditor.Focus();
+    }
+
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        base.OnClosing(e);
+        SavePositionAsync();
+    }
+
+    private async void SavePositionAsync()
+    {
+        var settings = await _settingsRepo.GetAsync();
+        settings.ScriptDesignerLeft   = Left;
+        settings.ScriptDesignerTop    = Top;
+        settings.ScriptDesignerWidth  = ActualWidth;
+        settings.ScriptDesignerHeight = ActualHeight;
+        await _settingsRepo.SaveAsync(settings);
     }
 
     /// <summary>
