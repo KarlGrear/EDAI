@@ -76,7 +76,7 @@ jobs:
           files-folder-recurse: true
 
       - name: Install vpk
-        run: dotnet tool install -g vpk
+        run: dotnet tool install -g vpk --version 0.0.1298
 
       - name: Pack with Velopack
         run: >
@@ -85,6 +85,11 @@ jobs:
           --packVersion ${{ steps.get_version.outputs.version }}
           --packDir ./publish
           --mainExe EDAI.UI.exe
+          --outputDir ./releases
+
+      - name: List release output
+        shell: bash
+        run: ls -lh ./releases/
 
       - name: Extract changelog
         id: changelog
@@ -107,7 +112,5 @@ jobs:
           name: ${{ github.ref_name }}
           body: ${{ steps.changelog.outputs.body }}
           prerelease: ${{ contains(github.ref_name, '-') }}
-          files: |
-            ./releases/EDAI-Setup.exe
-            ./releases/*.nupkg
-            ./releases/RELEASES
+          fail_on_unmatched_files: true
+          files: ./releases/**
